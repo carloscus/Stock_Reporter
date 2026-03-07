@@ -75,7 +75,8 @@ function App() {
   }
 
   useEffect(() => {
-    setUi(prev => ({ ...prev, isValido: validarCorreo(form.email) && form.nombre.length > 2 }))
+    const emailValido = validarCorreo(form.email)
+    setUi(prev => ({ ...prev, isValido: emailValido.valido && form.nombre.length > 2 }))
   }, [form.email, form.nombre])
 
   const handleDescargar = async () => {
