@@ -15,7 +15,8 @@ function App() {
   const [ui, setUi] = useState({ 
     isValido: false, reporteGenerado: false, theme: 'light',
     isSearching: false, searchTerm: '', allProducts: [], 
-    metadata: { lastUpdated: '', totalProducts: 0, almacen: 'Cipsa', sinStock: 0, bajoStock: 0, status: '...' }
+    metadata: { lastUpdated: '', totalProducts: 0, almacen: 'Cipsa', sinStock: 0, bajoStock: 0, status: '...' },
+    isStale: false
   })
 
   const loadProducts = async () => {
@@ -27,7 +28,18 @@ function App() {
       const res = await fetch(`${baseUrl}productos_con_stock.json${cacheBuster}`)
       if (res.ok) {
         const data = await res.json()
-        setUi(prev => ({ ...prev, allProducts: data.productos || [], metadata: data.metadata || prev.metadata }))
+        // Verificar si la data tiene más de 1 hora de antigüedad
+        const lastUpdated = data.metadata?.lastUpdated ? new Date(data.metadata.lastUpdated) : null
+        const now = new Date()
+        const oneHour = 60 * 60 * 1000
+        const isStale = lastUpdated ? (now.getTime() - lastUpdated.getTime()) > oneHour : false
+        
+        setUi(prev => ({ 
+          ...prev, 
+          allProducts: data.productos || [], 
+          metadata: data.metadata || prev.metadata,
+          isStale: isStale
+        }))
       }
     } catch (err) { console.error('Error cargando data:', err) }
     setIsRefreshing(false)
@@ -148,9 +160,10 @@ function App() {
             {ui.searchTerm && ui.searchTerm.length >= 2 && (
               <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 mb-2 px-1">
                 <span>{searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''}</span>
-                <span className="flex items-center gap-1">
+                <span className={`flex items-center gap-1 ${ui.isStale ? 'text-red-500' : ''}`}>
                   <span className="material-symbols-outlined text-[14px]">schedule</span>
                   Actualizado: {ui.metadata.lastUpdated ? new Date(ui.metadata.lastUpdated).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                  {ui.isStale && <span className="text-red-500 font-bold ml-1">⚠</span>}
                 </span>
               </div>
             )}
@@ -198,6 +211,20 @@ function App() {
             <div className="pt-10 pb-4">
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Generar Reporte</h1>
               <p className="text-slate-500 mt-2">Almacén: {ui.metadata.almacen}</p>
+              {ui.isStale && (
+                <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2">
+                  <span className="material-symbols-outlined text-red-500">warning</span>
+                  <p className="text-sm text-red-600 dark:text-red-400 font-bold">Data desactualizada. Presiona actualizar.</p>
+                  <button 
+                    onClick={loadProducts} 
+                    disabled={isRefreshing}
+                    className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                  >
+                    <span className={`material-symbols-outlined text-[16px] ${isRefreshing ? 'animate-spin' : ''}`}>refresh</span>
+                    {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+                  </button>
+                </div>
+              )}
             </div>
 
             <form onSubmit={(e) => {e.preventDefault(); setUi(prev => ({...prev, reporteGenerado: true}))}} className="py-6 space-y-8">
@@ -268,7 +295,12 @@ function App() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800">
                 <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Último Pulso</p>
-                <p className="text-lg font-bold">{ui.metadata.lastUpdated ? new Date(ui.metadata.lastUpdated).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Sin datos'}</p>
+                <p className={`text-lg font-bold ${ui.metadata.lastUpdated ? (ui.isStale ? 'text-red-500 animate-pulse' : 'text-emerald-500') : 'text-slate-400'}`}>
+                  {ui.metadata.lastUpdated ? new Date(ui.metadata.lastUpdated).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Sin datos'}
+                </p>
+                {ui.isStale && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1">⚠ Data desactualizada</p>
+                )}
               </div>
               <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800">
                 <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Estado Bot</p>
