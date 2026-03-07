@@ -69,6 +69,11 @@ function App() {
     localStorage.setItem('theme', newTheme)
   }
 
+  // Convertir texto a formato nombre propio (primera letra mayúscula)
+  const toProperCase = (text) => {
+    return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())
+  }
+
   useEffect(() => {
     setUi(prev => ({ ...prev, isValido: validarCorreo(form.email) && form.nombre.length > 2 }))
   }, [form.email, form.nombre])
@@ -200,7 +205,13 @@ function App() {
               <label className="text-[13px] font-bold uppercase opacity-60">Solicitante</label>
               <div className="relative flex items-center">
                 <span className="material-symbols-outlined absolute left-4 text-slate-400 z-10 pointer-events-none">person</span>
-                <input className="input-field" placeholder="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+                <input 
+                  className="input-field" 
+                  placeholder="Nombre" 
+                  value={form.nombre} 
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                  onBlur={(e) => setForm({ ...form, nombre: toProperCase(e.target.value) })}
+                />
               </div>
             </div>
             <div className="flex flex-col gap-2">
