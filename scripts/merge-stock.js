@@ -14,7 +14,6 @@ const GREEN_BG = 'FFD1FAE5';
 
 const normalizeSKU = (sku) => String(sku || '').trim().replace(/^0+/, '');
 
-// Estilos profesionales con el nuevo orden de columnas optimizado
 const applyProfessionalStyles = (worksheet) => {
   worksheet.columns = [
     { header: '#', key: 'item', width: 6 },
@@ -25,60 +24,33 @@ const applyProfessionalStyles = (worksheet) => {
     { header: 'Stock VES', key: 'stock', width: 12 },
     { header: 'Alerta', key: 'alerta', width: 8 }
   ];
-
   const headerRow = worksheet.getRow(1);
   headerRow.height = 30;
   headerRow.eachCell((cell) => {
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: PRIMARY_COLOR } };
-    cell.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
+    cell.font = { bold: true, size: 11 };
     cell.alignment = { vertical: 'middle', horizontal: 'center' };
-    cell.border = { 
-      top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'medium'}, right: {style:'thin'} 
-    };
   });
-
   worksheet.autoFilter = { from: 'A1', to: 'G1' };
   worksheet.views = [{ state: 'frozen', ySplit: 1 }];
 };
 
-// Función para añadir datos con el índice reiniciado por hoja
 const addDataToSheet = (worksheet, data) => {
   data.forEach((p, index) => {
-    const row = worksheet.addRow([
-      index + 1, // Reinicio del índice: empieza en 1 para cada hoja
-      p.sku,
-      p.ean,
-      p.nombre,
-      p.unBx,
-      p.stock,
-      p.alerta
-    ]);
-
-    // Aplicar semáforo de color a la celda de Stock
-    const stockCell = row.getCell(6);
-    stockCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: p.bgColor } };
-    stockCell.font = { bold: true };
-    stockCell.alignment = { horizontal: 'center' };
-
-    // Centrar Alerta
+    const row = worksheet.addRow([index + 1, p.sku, p.ean, p.nombre, p.unBx, p.stock, p.alerta]);
+    row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: p.bgColor } };
+    row.getCell(6).font = { bold: true };
+    row.getCell(6).alignment = { horizontal: 'center' };
     row.getCell(7).alignment = { horizontal: 'center' };
-    
-    // Bordes sutiles para las filas
-    row.eachCell(cell => {
-      cell.border = {
-        bottom: {style:'hair'},
-        right: {style:'hair'}
-      };
-    });
   });
 };
 
-async function generateOptimizedReport() {
+async function runSnapshotUpdate() {
   try {
-    console.log('🚀 Generando Reporte Optimizado (Índices reiniciados y nuevo orden)...');
+    console.log('🚀 Actualizando Snapshots de StockPulse (4 categorías)...');
 
     const productosPath = path.join(__dirname, '..', 'Data', 'productos.json');
-    const { productos, metadata } = JSON.parse(fs.readFileSync(productosPath, 'utf8'));
+    const { productos, metadata: masterMeta } = JSON.parse(fs.readFileSync(productosPath, 'utf8'));
 
     const stockPath = path.join(__dirname, '..', 'Data', 'reporte_stock_hoy.xlsx');
     const stockWorkbook = xlsx.readFile(stockPath);
@@ -92,87 +64,91 @@ async function generateOptimizedReport() {
       if (sku) stockMap.set(sku, (stockMap.get(sku) || 0) + disponible);
     });
 
+    let countSinStock = 0;
+    let countBajoStock = 0;
+
     const fullData = productos.map(p => {
       const stock = stockMap.get(p.sku) || 0;
       let color = GREEN_BG, alerta = '🟢';
-      if (stock === 0) { color = RED_BG; alerta = '🔴'; }
-      else if (stock < 10) { color = YELLOW_BG; alerta = '🟡'; }
+      if (stock === 0) { color = RED_BG; alerta = '🔴'; countSinStock++; }
+      else if (stock < 10) { color = YELLOW_BG; alerta = '🟡'; countBajoStock++; }
       return { ...p, stock, alerta, bgColor: color };
     });
 
-    const workbook = new ExcelJS.Workbook();
-    
-    // --- HOJA RESUMEN ---
-    const wsResumen = workbook.addWorksheet('Resumen');
-    wsResumen.columns = [{ width: 30 }, { width: 20 }];
-    wsResumen.addRow(['REPORTE DE INVENTARIO']).font = { bold: true, size: 16, color: { argb: 'FF007070' } };
-    wsResumen.addRow(['Almacén:', 'VES (Villa El Salvador)']);
-    wsResumen.addRow(['Generado el:', new Date().toLocaleString('es-PE')]);
-    wsResumen.addRow([]);
-    
-    const headerKPI = wsResumen.addRow(['LÍNEA / SEGMENTO', 'STOCK TOTAL']);
-    headerKPI.font = { bold: true };
-    headerKPI.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } });
+    const outputDirs = [
+      path.join(__dirname, '..', 'reports'),
+      path.join(__dirname, '..', 'frontend', 'public', 'reports')
+    ];
+    outputDirs.forEach(dir => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); });
 
-    metadata.lineas.forEach(lin => {
+    // --- GENERAR SNAPSHOTS POR CATEGORÍA ---
+    const categoriasADescargar = ['PELOTAS', 'ESCOLAR', 'REPRESENTADAS'];
+
+    for (const cat of categoriasADescargar) {
+      const workbook = new ExcelJS.Workbook();
+      const dataCat = fullData.filter(p => p.categoria === cat);
+
+      if (dataCat.length > 0) {
+        if (cat === 'ESCOLAR') {
+          const lineas = [...new Set(dataCat.map(p => p.linea))];
+          lineas.forEach(lin => {
+            const sheet = workbook.addWorksheet(lin.substring(0, 31));
+            applyProfessionalStyles(sheet);
+            addDataToSheet(sheet, dataCat.filter(p => p.linea === lin));
+          });
+        } else {
+          const sheet = workbook.addWorksheet(cat);
+          applyProfessionalStyles(sheet);
+          addDataToSheet(sheet, dataCat);
+        }
+        const fileName = `StockPulse_${cat}.xlsx`;
+        for (const dir of outputDirs) await workbook.xlsx.writeFile(path.join(dir, fileName));
+      }
+    }
+
+    // --- GENERAR SNAPSHOT MAESTRO (TODOS) ---
+    const wbAll = new ExcelJS.Workbook();
+    const wsResumen = wbAll.addWorksheet('Resumen');
+    wsResumen.addRow(['STOCKPULSE - CONSOLIDADO']).font = { bold: true, size: 16 };
+    wsResumen.addRow(['Actualización:', new Date().toLocaleString('es-PE')]);
+    masterMeta.lineas.forEach(lin => {
       const total = fullData.filter(p => p.linea === lin).reduce((a, b) => a + b.stock, 0);
       wsResumen.addRow([lin, total]);
     });
 
-    // --- HOJAS POR LÍNEA (Contador reiniciado) ---
-    metadata.lineas.forEach(lin => {
-      const sheetName = lin.charAt(0) + lin.slice(1).toLowerCase();
-      const ws = workbook.addWorksheet(sheetName.substring(0, 31));
+    masterMeta.lineas.forEach(lin => {
+      const ws = wbAll.addWorksheet(lin.substring(0, 31));
       applyProfessionalStyles(ws);
-      
-      const filteredData = fullData.filter(p => p.linea === lin);
-      addDataToSheet(ws, filteredData);
+      addDataToSheet(ws, fullData.filter(p => p.linea === lin));
     });
 
-    // --- HOJA ALERTAS (Contador reiniciado) ---
-    const wsAlertas = workbook.addWorksheet('Alertas Stock');
-    applyProfessionalStyles(wsAlertas);
-    const dataAlertas = fullData.filter(p => p.stock < 10);
-    addDataToSheet(wsAlertas, dataAlertas);
+    const masterFileName = `StockPulse_TODOS.xlsx`;
+    for (const dir of outputDirs) await wbAll.xlsx.writeFile(path.join(dir, masterFileName));
 
-    // Guardar Reportes y JSON para el buscador
-    const fechaISO = new Date().toISOString().split('T')[0];
-    const fileName = `StockReporter_${fechaISO}_TODOS.xlsx`;
-    const reportPaths = [
-      path.join(__dirname, '..', 'reports', fileName),
-      path.join(__dirname, '..', 'frontend', 'public', 'reports', fileName)
-    ];
+    // --- GUARDAR METADATOS PARA EL DASHBOARD ---
+    const outputJSON = {
+      metadata: {
+        lastUpdated: new Date().toISOString(),
+        totalProducts: fullData.length,
+        almacen: 'VES',
+        sinStock: countSinStock,
+        bajoStock: countBajoStock,
+        status: 'OPERATIVO'
+      },
+      productos: fullData
+    };
 
     const jsonPaths = [
       path.join(__dirname, '..', 'Data', 'productos_con_stock.json'),
       path.join(__dirname, '..', 'frontend', 'public', 'productos_con_stock.json')
     ];
+    for (const p of jsonPaths) fs.writeFileSync(p, JSON.stringify(outputJSON, null, 2));
 
-    for (const p of reportPaths) {
-      if (!fs.existsSync(path.dirname(p))) fs.mkdirSync(path.dirname(p), { recursive: true });
-      await workbook.xlsx.writeFile(p);
-    }
-
-    const outputJSON = {
-      metadata: {
-        lastUpdated: new Date().toISOString(),
-        totalProducts: fullData.length,
-        almacen: 'VES'
-      },
-      productos: fullData
-    };
-
-    const jsonData = JSON.stringify(outputJSON, null, 2);
-    for (const p of jsonPaths) {
-      if (!fs.existsSync(path.dirname(p))) fs.mkdirSync(path.dirname(p), { recursive: true });
-      fs.writeFileSync(p, jsonData);
-    }
-
-    console.log(`✅ Reporte Profesional y JSON de búsqueda generados.`);
+    console.log(`✅ Los 4 Snapshots han sido actualizados.`);
 
   } catch (error) {
-    console.error('❌ Error en el proceso:', error.message);
+    console.error('❌ Error:', error.message);
   }
 }
 
-generateOptimizedReport();
+runSnapshotUpdate();

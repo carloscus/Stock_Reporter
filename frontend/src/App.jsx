@@ -1,297 +1,274 @@
+/**
+ * @file App.jsx
+ * @author Carlos Cusi
+ * @description Componente principal de StockPulse con Tooltips informativos.
+ */
+
 import { useState, useEffect, useMemo } from 'react'
-import { validarCorreo, generarNombreArchivo } from './utils/reportUtils'
-import { useTheme } from './hooks/useTheme'
+import { validarCorreo } from './utils/reportUtils'
 
 const CATEGORIAS = [
-  { id: 'todos', nombre: 'Todos' },
-  { id: 'pelotas', nombre: 'Pelotas' },
-  { id: 'escolar', nombre: 'Escolar' },
-  { id: 'representadas', nombre: 'Representadas' },
+  { id: 'todos', nombre: 'Todos', hint: 'Reporte completo de todas las líneas' },
+  { id: 'pelotas', nombre: 'Pelotas', hint: 'Solo productos de la línea Pelotas y Mascotas' },
+  { id: 'escolar', nombre: 'Escolar', hint: 'Solo productos de la línea Escolar (Forros, Archivo, etc.)' },
+  { id: 'representadas', nombre: 'Representadas', hint: 'Solo productos de marcas representadas' },
 ]
 
 function App() {
-  const { theme, toggleTheme, mounted } = useTheme()
+  const [activeTab, setActiveTab] = useState('pulso')
   const [form, setForm] = useState({ nombre: '', email: '', categoria: 'todos' })
   const [ui, setUi] = useState({ 
-    isValido: false, 
-    reporteGenerado: false, 
-    nombreArchivo: '', 
-    error: '', 
-    isSearching: false,
-    searchTerm: '',
-    allProducts: [],
-    lastUpdated: '',
-    isLoadingProducts: false
+    isValido: false, reporteGenerado: false, theme: 'light',
+    isSearching: false, searchTerm: '', allProducts: [], 
+    metadata: { lastUpdated: '', totalProducts: 0, almacen: 'Cipsa', sinStock: 0, bajoStock: 0, status: '...' }
   })
 
-  // 1. Cargar productos para el buscador
   useEffect(() => {
     const loadProducts = async () => {
-      setUi(prev => ({ ...prev, isLoadingProducts: true }))
       try {
-        const res = await fetch('/productos_con_stock.json')
+        const baseUrl = import.meta.env.BASE_URL;
+        const res = await fetch(`${baseUrl}productos_con_stock.json`)
         if (res.ok) {
           const data = await res.json()
-          setUi(prev => ({ 
-            ...prev, 
-            allProducts: data.productos || [], 
-            lastUpdated: data.metadata?.lastUpdated || ''
-          }))
+          setUi(prev => ({ ...prev, allProducts: data.productos || [], metadata: data.metadata || prev.metadata }))
         }
-      } catch (err) {
-        console.error('Error cargando buscador:', err)
-      } finally {
-        setUi(prev => ({ ...prev, isLoadingProducts: false }))
-      }
+      } catch (err) { console.error('Error cargando data:', err) }
     }
     loadProducts()
   }, [])
 
-  // 2. Lógica de filtrado de búsqueda
   const searchResults = useMemo(() => {
-    if (!ui.searchTerm || ui.searchTerm.length < 2) return []
-    const term = ui.searchTerm.toLowerCase()
+    const term = ui.searchTerm.trim().toLowerCase()
+    if (!term || term.length < 2) return []
     return ui.allProducts.filter(p => 
-      p.sku.toLowerCase().includes(term) || 
-      p.nombre.toLowerCase().includes(term)
-    ).slice(0, 10)
+      (p.sku && String(p.sku).toLowerCase().includes(term)) || 
+      (p.nombre && p.nombre.toLowerCase().includes(term))
+    ).slice(0, 15)
   }, [ui.searchTerm, ui.allProducts])
 
-  // 3. Validación Formulario
   useEffect(() => {
-    const emailValido = validarCorreo(form.email)
-    const nombreValido = form.nombre.trim().length > 0
-    setUi(prev => ({
-      ...prev,
-      isValido: emailValido && nombreValido,
-      error: (form.email && !emailValido) ? 'Solo se permiten correos @cipsa.com.pe' : ''
-    }))
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    setUi(prev => ({ ...prev, theme: savedTheme }))
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = ui.theme === 'light' ? 'dark' : 'light'
+    setUi(prev => ({ ...prev, theme: newTheme }))
+    document.documentElement.classList.toggle('dark', newTheme === 'dark')
+    localStorage.setItem('theme', newTheme)
+  }
+
+  useEffect(() => {
+    setUi(prev => ({ ...prev, isValido: validarCorreo(form.email) && form.nombre.length > 2 }))
   }, [form.email, form.nombre])
+const handleDescargar = async () => {
+  const baseUrl = import.meta.env.BASE_URL;
+  const catSuffix = (form.categoria || 'todos').toUpperCase();
+  const serverFileName = `StockPulse_${catSuffix}.xlsx`; 
+  const downloadPath = `${baseUrl}reports/${serverFileName}`;
 
-  const handleGenerarReporte = (e) => {
-    e.preventDefault()
-    if (!ui.isValido) return
-    setUi(prev => ({ 
-      ...prev, 
-      reporteGenerado: true, 
-      nombreArchivo: generarNombreArchivo(form.categoria) 
-    }))
-  }
+  try {
+    // Validar si el archivo existe antes de descargar
+    const response = await fetch(downloadPath);
+    const contentType = response.headers.get('content-type');
 
-  const handleDescargar = async () => {
-    try {
-      const response = await fetch(`/reports/${ui.nombreArchivo}`)
-      if (!response.ok || response.headers.get('content-type').includes('text/html')) {
-        throw new Error('El reporte aún no ha sido generado.')
-      }
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = ui.nombreArchivo
-      link.click()
-      window.URL.revokeObjectURL(url)
-    } catch (err) {
-      alert(err.message)
+    if (!response.ok || (contentType && contentType.includes('text/html'))) {
+      throw new Error('El reporte aún no ha sido procesado por el servidor para hoy.');
     }
-  }
 
-  // Wait for mounted to avoid hydration mismatch
-  if (!mounted) {
-    return null
-  }
+    // Si es válido, disparar la descarga con renombrado
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
 
-  return (
-    <div className={`font-display min-h-screen flex flex-col transition-colors duration-300 relative ${
-      theme === 'dark' ? 'bg-background-dark text-slate-100' : 'bg-background-light text-slate-900'
-    }`}>
+    const opciones = { day: '2-digit', month: '2-digit', year: '2-digit' };
+    const fecha = new Intl.DateTimeFormat('es-PE', opciones).format(new Date()).replace(/\//g, '-');
+    const downloadName = `StockPulse_${catSuffix}_${fecha}.xlsx`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col relative transition-colors duration-500">
       
-      {/* Search Overlay */}
+      {/* SEARCH OVERLAY */}
       {ui.isSearching && (
-        <div className="fixed inset-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-sm animate-in fade-in duration-200 flex flex-col">
-          <div className="p-4 flex items-center gap-4 border-b border-slate-200 dark:border-primary/10">
-            <span className="material-symbols-outlined text-primary">search</span>
+        <div className="fixed inset-0 z-50 bg-white/98 dark:bg-background-dark/98 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
+          <div className="p-6 flex items-center gap-4 border-b border-slate-200 dark:border-white/5">
+            <span className="material-symbols-outlined text-primary text-3xl">search</span>
             <input 
-              autoFocus
-              className="flex-1 bg-transparent border-none text-xl focus:ring-0 outline-none"
-              placeholder="Escriba SKU o nombre..."
-              value={ui.searchTerm}
+              autoFocus className="flex-1 bg-transparent border-none text-2xl font-bold focus:ring-0 outline-none"
+              placeholder="SKU o nombre..." value={ui.searchTerm}
+              title="Ingrese al menos 2 caracteres para buscar"
               onChange={(e) => setUi(prev => ({ ...prev, searchTerm: e.target.value }))}
             />
-            <button 
-              onClick={() => setUi(prev => ({ ...prev, isSearching: false, searchTerm: '' }))}
-              className="size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-white/10"
-            >
+            <button onClick={() => setUi(prev => ({ ...prev, isSearching: false, searchTerm: '' }))} className="size-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-red-50 transition-colors">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
-
-          {/* Timestamp Info */}
-          {ui.lastUpdated && (
-            <div className="px-4 py-2 bg-slate-50 dark:bg-primary/5 flex items-center gap-2 border-b border-slate-100 dark:border-primary/10">
-              <span className="material-symbols-outlined text-[14px] text-slate-400">schedule</span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Stock VES actualizado: {new Date(ui.lastUpdated).toLocaleString('es-PE', { 
-                  day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' 
-                })}
-              </p>
-            </div>
-          )}
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {searchResults.length > 0 ? (
-              searchResults.map(p => (
-                <div key={p.sku} className="p-4 bg-white dark:bg-primary/5 rounded-xl border border-slate-100 dark:border-primary/10 flex items-center justify-between shadow-sm">
-                  <div className="flex-1 min-w-0 mr-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-md">{p.sku}</span>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">{p.linea}</span>
-                    </div>
-                    <p className="mt-1 text-sm font-semibold truncate">{p.nombre}</p>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-lg font-bold">{p.stock}</span>
-                      <span className="text-xs">{p.alerta}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-bold">STOCK VES</span>
-                  </div>
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {searchResults.map(p => (
+              <div key={p.sku} className="p-5 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between" title={`Línea: ${p.linea}`}>
+                <div className="flex-1 min-w-0 mr-4">
+                  <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-lg">{p.sku}</span>
+                  <p className="font-bold truncate mt-1">{p.nombre}</p>
                 </div>
-              ))
-            ) : ui.searchTerm.length >= 2 ? (
-              <p className="text-center text-slate-400 py-10">No se encontraron productos.</p>
-            ) : (
-              <p className="text-center text-slate-400 py-10 italic text-sm">Empiece a escribir para buscar stock...</p>
-            )}
+                <div className="text-right">
+                  <span className="text-xl font-bold">{p.stock}</span>
+                  <p className="text-[9px] uppercase opacity-50">{ui.metadata.almacen}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Header */}
-      <header className="flex items-center bg-background-light dark:bg-background-dark p-4 justify-between border-b border-slate-200 dark:border-primary/10 sticky top-0 z-40 bg-white/80 backdrop-blur-md">
-        <div className="flex size-10 shrink-0 items-center overflow-hidden rounded-full bg-primary/10">
-          <img src="/favicon.svg" alt="Logo" className="h-full w-full object-contain p-1" />
+      {/* HEADER */}
+      <header className="flex items-center p-4 justify-between border-b sticky top-0 z-40 bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-slate-200 dark:border-white/5">
+        <div className="flex size-11 shrink-0 items-center overflow-hidden rounded-2xl bg-primary/10 p-1">
+          <img src="favicon.svg" alt="Logo" className="h-full w-full object-contain" />
         </div>
-        <div className="flex flex-1 px-4 items-center">
-          <h2 className="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">StockFlow</h2>
+        <div className="flex flex-1 px-4 flex-col">
+          <h2 className="text-xl leading-none font-bold">StockPulse</h2>
+          <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Inteligencia • CIPSA</p>
         </div>
-        <div className="flex items-center justify-end">
-          <button 
-            onClick={() => setUi(prev => ({ ...prev, isSearching: true }))}
-            className="flex size-10 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-primary/10 transition-colors"
-          >
-            <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">search</span>
-          </button>
-        </div>
+        <button 
+          onClick={() => setUi(prev => ({ ...prev, isSearching: true }))} 
+          className="size-11 flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-white/5 hover:text-primary transition-all"
+          title="Consulta rápida de stock por SKU"
+        >
+          <span className="material-symbols-outlined">search</span>
+        </button>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="px-4 pt-6 pb-2">
-          <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">Generar Reporte de Stock</h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Exportación profesional del inventario VES.</p>
-        </div>
-
-        <form onSubmit={handleGenerarReporte} className="px-4 py-4 space-y-6">
-          {/* Nombre */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="nombre" className="text-slate-900 dark:text-slate-200 text-sm font-semibold">Nombre Completo</label>
-            <div className="relative flex items-center group">
-              <span className="material-symbols-outlined absolute left-4 text-slate-400 dark:text-primary/60 group-focus-within:text-primary transition-colors z-10">person</span>
-              <input 
-                id="nombre" name="nombre" type="text" autoComplete="name" className="input-field" 
-                placeholder="Ingrese su nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              />
+      {/* MAIN CONTENT */}
+      <main className="flex-1 overflow-y-auto pb-32 max-w-2xl mx-auto w-full px-6">
+        
+        {activeTab === 'pulso' ? (
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="pt-10 pb-4">
+              <h1 className="text-3xl font-bold">Generar Reporte</h1>
+              <p className="text-slate-500 mt-2" title="Nombre del almacén de origen">Almacén activo: {ui.metadata.almacen}</p>
             </div>
-          </div>
 
-          {/* Email */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-slate-900 dark:text-slate-200 text-sm font-semibold">Correo Corporativo</label>
-            <div className="relative flex items-center group">
-              <span className="material-symbols-outlined absolute left-4 text-slate-400 dark:text-primary/60 group-focus-within:text-primary transition-colors z-10">mail</span>
-              <input 
-                id="email" name="email" type="email" autoComplete="email" className="input-field" 
-                placeholder="usuario@cipsa.com.pe" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-            </div>
-            {ui.error && <p className="text-xs text-red-500 mt-1 font-medium">{ui.error}</p>}
-          </div>
-
-          {/* Chips */}
-          <div className="flex flex-col gap-3">
-            <label className="text-slate-900 dark:text-slate-200 text-sm font-semibold">Categoría de Productos</label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIAS.map((cat) => (
-                <button 
-                  key={cat.id} type="button" className={`chip ${form.categoria === cat.id ? 'chip-active' : 'chip-inactive'}`}
-                  onClick={() => { setForm({ ...form, categoria: cat.id }); setUi(prev => ({ ...prev, reporteGenerado: false })) }}
-                >
-                  {cat.nombre}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button type="submit" disabled={!ui.isValido} className="btn-primary">
-            <span className="material-symbols-outlined">bar_chart</span>
-            Generar Reporte de Stock
-          </button>
-        </form>
-
-        {/* Success Card */}
-        {ui.reporteGenerado && (
-          <section className="px-4 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="card-success">
-              <div className="flex items-start gap-4">
-                <div className="bg-emerald-500 rounded-full p-2 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-white text-xl">check</span>
+            <form onSubmit={(e) => {e.preventDefault(); setUi(prev => ({...prev, reporteGenerado: true}))}} className="py-6 space-y-8">
+              <div className="space-y-6 bg-white dark:bg-white/2 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[13px] font-bold uppercase opacity-60">Solicitante</label>
+                  <input className="input-field" placeholder="Su nombre" value={form.nombre} title="Nombre de quien descarga el reporte" onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-emerald-900 dark:text-emerald-400 font-bold">Reporte Generado</h4>
-                  <p className="text-emerald-800 dark:text-emerald-500/80 text-sm">Listo para descarga segmentada.</p>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[13px] font-bold uppercase opacity-60">Email Corporativo</label>
+                  <input className="input-field" placeholder="usuario@cipsa.com.pe" value={form.email} title="Debe usar su correo de @cipsa.com.pe" onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="flex flex-col gap-4">
+                  <label className="text-[13px] font-bold uppercase opacity-60">Filtro de Reporte</label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {CATEGORIAS.map(cat => (
+                      <button 
+                        key={cat.id} type="button" 
+                        className={`chip ${form.categoria === cat.id ? 'chip-active' : 'chip-inactive'}`} 
+                        onClick={() => setForm({ ...form, categoria: cat.id })}
+                        title={cat.hint}
+                      >
+                        {cat.nombre}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="mt-6 flex items-center p-4 bg-white dark:bg-background-dark/50 border border-slate-100 dark:border-emerald-500/20 rounded-xl">
-                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 mr-3">description</span>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-slate-700 dark:text-slate-200 font-medium truncate">{ui.nombreArchivo}</p>
-                  <p className="text-xs text-slate-400">Excel Spreadsheet Professional</p>
-                </div>
-              </div>
-              <button 
-                className="w-full mt-4 h-12 bg-emerald-500 dark:bg-emerald-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-md active:scale-95"
-                onClick={handleDescargar}
-              >
-                <span className="material-symbols-outlined">download</span>
-                Descargar Reporte
+              <button type="submit" disabled={!ui.isValido} className="btn-primary" title={!ui.isValido ? "Complete los campos para habilitar" : "Generar snapshot de inventario"}>
+                <span className="material-symbols-outlined">analytics</span> Generar Inventario
               </button>
+            </form>
+
+            {ui.reporteGenerado && (
+              <div className="card-success animate-in fade-in zoom-in-95 mt-4 shadow-lg shadow-emerald-500/10">
+                <h4 className="font-bold text-xl mb-4">¡Snapshot Listo!</h4>
+                <p className="text-sm opacity-70 mb-6">Se ha capturado el stock actual. El archivo se guardará con la fecha de hoy.</p>
+                <button onClick={handleDescargar} className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95" title="Descargar Excel con renombrado automático">
+                  <span className="material-symbols-outlined">download</span> DESCARGAR AHORA
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 pt-10">
+            <h1 className="text-3xl font-bold mb-8 text-primary">Salud del Sistema</h1>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm" title="Hora en que el bot procesó los datos por última vez">
+                <p className="text-[10px] font-bold uppercase opacity-50 mb-2 tracking-tighter">Último Pulso</p>
+                <p className="text-lg font-bold">{new Date(ui.metadata.lastUpdated).toLocaleTimeString()}</p>
+                <p className="text-[10px] opacity-40">{new Date(ui.metadata.lastUpdated).toLocaleDateString()}</p>
+              </div>
+              <div className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm" title="Indica que el motor de sincronización está activo">
+                <p className="text-[10px] font-bold uppercase opacity-50 mb-2 tracking-tighter">Estado Bot</p>
+                <div className="flex items-center gap-2 text-emerald-500">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                  <p className="font-bold">CONECTADO</p>
+                </div>
+              </div>
+              <div className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 col-span-2 shadow-sm">
+                <p className="text-[10px] font-bold uppercase opacity-50 mb-4 tracking-widest text-center">Métricas del Inventario ({ui.metadata.almacen})</p>
+                <div className="flex justify-between items-center px-4">
+                  <div className="text-center" title="Total de SKUs en el maestro">
+                    <p className="text-2xl font-bold">{ui.metadata.totalProducts}</p>
+                    <p className="text-[10px] opacity-50">ITEMS</p>
+                  </div>
+                  <div className="h-10 w-[1px] bg-slate-200 dark:bg-white/10"></div>
+                  <div className="text-center text-red-500" title="Productos con stock físico cero">
+                    <p className="text-2xl font-bold">{ui.metadata.sinStock}</p>
+                    <p className="text-[10px] opacity-50">AGOTADOS</p>
+                  </div>
+                  <div className="h-10 w-[1px] bg-slate-200 dark:bg-white/10"></div>
+                  <div className="text-center text-amber-500" title="Productos con menos de 10 unidades disponibles">
+                    <p className="text-2xl font-bold">{ui.metadata.bajoStock}</p>
+                    <p className="text-[10px] opacity-50">CRÍTICOS</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </section>
+
+            <div className="mt-8 p-6 bg-primary/5 rounded-3xl border border-primary/10 flex gap-4 items-start">
+              <span className="material-symbols-outlined text-primary">help</span>
+              <p className="text-xs leading-relaxed opacity-80">
+                StockPulse procesa automáticamente los datos de los almacenes para ofrecer información estratégica. Los reportes generados son propiedad de CIPSA y contienen información confidencial.
+              </p>
+            </div>
+          </div>
         )}
       </main>
 
-      {/* Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-primary/10 px-4 pb-6 pt-2 z-40">
-        <div className="max-w-md mx-auto flex justify-around items-center">
-          <NavItem icon="home" label="INICIO" active={true} />
-          <NavItem icon="assessment" label="REPORTES" active={false} />
-          <NavItem 
-            icon={theme === 'light' ? 'dark_mode' : 'light_mode'} label="TEMA" 
-            onClick={toggleTheme}
-          />
+      {/* NAV INFERIOR */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-2xl border-t border-slate-200 dark:border-white/5 px-6 pb-10 pt-4 z-40">
+        <div className="max-w-md mx-auto flex justify-between items-center px-4">
+          <button onClick={() => setActiveTab('pulso')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'pulso' ? 'text-primary' : 'opacity-40'}`} title="Panel de Descargas">
+            <span className="material-symbols-outlined text-[26px]">analytics</span>
+            <span className="text-[9px] font-bold tracking-widest">PULSO</span>
+          </button>
+          <button onClick={() => setActiveTab('estado')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'estado' ? 'text-primary' : 'opacity-40'}`} title="Dashboard de Salud de Datos">
+            <span className="material-symbols-outlined text-[26px]">monitor_heart</span>
+            <span className="text-[9px] font-bold tracking-widest">ESTADO</span>
+          </button>
+          <button onClick={toggleTheme} className="flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity" title="Cambiar Apariencia">
+            <span className="material-symbols-outlined text-[26px]">{ui.theme === 'light' ? 'dark_mode' : 'light_mode'}</span>
+            <span className="text-[9px] font-bold uppercase">{ui.theme === 'light' ? 'Noche' : 'Día'}</span>
+          </button>
         </div>
       </nav>
     </div>
-  )
-}
-
-function NavItem({ icon, label, active, onClick }) {
-  return (
-    <button onClick={onClick} className={`flex flex-col items-center gap-1 group transition-colors ${active ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`}>
-      <span className={`material-symbols-outlined ${!active ? 'group-hover:text-primary' : ''} transition-colors`}>{icon}</span>
-      <span className={`text-[10px] font-bold ${!active ? 'group-hover:text-primary' : ''} tracking-wider`}>{label}</span>
-    </button>
   )
 }
 

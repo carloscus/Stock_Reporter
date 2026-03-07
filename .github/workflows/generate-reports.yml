@@ -24,7 +24,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          npm install xlsx
+          npm install xlsx exceljs
       
       - name: Convert codigos_generales.xlsx to JSON
         run: node scripts/convert-codigos.js
@@ -34,11 +34,23 @@ jobs:
         env:
           STOCK_URL: ${{ secrets.STOCK_URL }}
       
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+      
       - name: Commit generated reports
+        run: |
+          # Añadir todos los archivos generados tanto en la raíz como en el frontend
+          git add reports/*.xlsx || true
+          git add Data/*.json || true
+          git add frontend/public/reports/*.xlsx || true
+          git add frontend/public/productos_con_stock.json || true
+        
+      - name: Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "📊 Auto-generate: Reportes de stock $(date +'%d-%m-%y')"
-          file_pattern: "reports/*.xlsx Data/*.json"
       
       - name: Upload reports as artifacts
         uses: actions/upload-artifact@v4

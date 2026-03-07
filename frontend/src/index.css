@@ -2,90 +2,47 @@
 
 @theme {
   --color-primary: #13daec;
+  --color-primary-dark: #0bb8cc;
   --color-background-light: #f6f8f8;
   --color-background-dark: #102022;
   --font-family-display: "Spline Sans", system-ui, sans-serif;
-  
-  --radius-default: 1rem;
-  --radius-lg: 2rem;
-  --radius-xl: 3rem;
 }
 
-/* Base styles */
-html {
-  font-family: var(--font-family-display);
+@custom-variant dark (&:where(.dark, .dark *));
+
+html { 
+  font-family: var(--font-family-display); 
+  scroll-behavior: smooth; 
 }
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined' !important;
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
+body { 
+  background-color: var(--color-background-light); 
+  min-height: 100dvh; 
+  margin: 0; 
+  color: #0f172a; 
 }
 
-body {
-  background-color: var(--color-background-light);
-  min-height: max(884px, 100dvh);
-  margin: 0;
-  color: #0f172a;
+.dark body { 
+  background-color: var(--color-background-dark); 
+  color: #f1f5f9; 
 }
 
-/* Custom component styles */
+/* Componentes */
 .btn-primary {
-  @apply w-full h-14 bg-primary text-slate-900 font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform cursor-pointer border-none text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+  @apply w-full h-14 bg-primary text-slate-900 font-bold rounded-2xl flex items-center justify-center gap-2 
+         shadow-lg shadow-primary/20 active:scale-95 transition-all cursor-pointer border-none;
 }
 
 .input-field {
-  @apply w-full pl-12 pr-4 h-14 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-slate-400 text-base transition-all;
+  @apply w-full pl-12 pr-4 h-14 bg-white border border-slate-200 rounded-2xl focus:outline-none 
+         focus:ring-2 focus:ring-primary focus:border-primary text-slate-900 transition-all;
 }
+.dark .input-field { @apply bg-white/5 border-white/10 text-white; }
 
-.input-field.dark {
-  @apply bg-primary/5 border-primary/20 text-white;
-}
+.chip { @apply px-5 py-2.5 rounded-full font-bold text-sm transition-all cursor-pointer border-none; }
+.chip-active { @apply bg-primary text-slate-900; }
+.chip-inactive { @apply bg-white border border-slate-200 text-slate-600; }
+.dark .chip-inactive { @apply bg-white/5 border-white/10 text-slate-400; }
 
-.chip {
-  @apply px-4 py-2 rounded-full font-medium text-sm transition-all cursor-pointer border-none;
-}
-
-.chip-active {
-  @apply bg-primary text-slate-900 font-bold;
-}
-
-.chip-inactive {
-  @apply border border-slate-200 text-slate-600 bg-transparent hover:bg-primary/10;
-}
-
-.chip-inactive-dark {
-  @apply border border-primary/20 text-slate-300 bg-transparent hover:bg-primary/10;
-}
-
-.card-success {
-  @apply bg-emerald-50 border border-emerald-200 rounded-2xl p-6;
-}
-
-.card-success.dark {
-  @apply bg-emerald-500/10 border-emerald-500/30;
-}
-
-/* Animation classes */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slide-in-from-bottom {
-  from { transform: translateY(1rem); }
-  to { transform: translateY(0); }
-}
-
-.animate-in {
-  animation: fade-in 0.5s ease-out, slide-in-from-bottom 0.5s ease-out;
-}
+.card-success { @apply bg-emerald-50 border border-emerald-200 rounded-3xl p-8; }
+.dark .card-success { @apply bg-emerald-500/5 border-emerald-500/20; }
