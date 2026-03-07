@@ -27,6 +27,17 @@ body {
   color: #f1f5f9; 
 }
 
+/* Evitar sombras extrañas en modo oscuro */
+.dark {
+  --tw-shadow-colored: 0 0 #0000;
+}
+
+.dark .shadow-lg,
+.dark .shadow-md,
+.dark .shadow-sm {
+  --tw-shadow: 0 0 #0000;
+}
+
 /* Componentes */
 .btn-primary {
   @apply w-full h-14 bg-primary text-slate-900 font-bold rounded-2xl flex items-center justify-center gap-2 
