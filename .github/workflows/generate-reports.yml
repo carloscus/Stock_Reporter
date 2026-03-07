@@ -4,9 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     # Corre cada hora al minuto 0
-    # 12:00 UTC (7am PE) hasta las 04:00 UTC (11pm PE) del día siguiente
+    # 12:00 UTC (7am PE) hasta las 23:00 UTC (6pm PE) -> Lunes a Sábado (1-6)
     - cron: '0 12-23 * * 1-6'
-    - cron: '0 0-4 * * 2-0'
+    # 00:00 UTC (7pm PE) hasta las 04:00 UTC (11pm PE) -> Martes a Domingo (0,2-6)
+    - cron: '0 0-4 * * 0,2-6'
 
 permissions:
   contents: write
