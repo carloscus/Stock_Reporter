@@ -1,0 +1,29 @@
+{
+  "name": "stock_reporter",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de inventario y reportes de stock para CIPSA",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "convert": "node scripts/convert-codigos.js",
+    "merge": "node scripts/merge-stock.js",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "dev:api": "cd stock-api && npm run dev",
+    "start:api": "cd stock-api && npm start",
+    "all": "npm run convert && npm run merge"
+  },
+  "keywords": [
+    "inventory",
+    "stock",
+    "reports",
+    "excel"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "xlsx": "^0.18.5"
+  }
+}
