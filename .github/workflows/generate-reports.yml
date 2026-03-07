@@ -1,12 +1,12 @@
 name: Generar Reportes de Stock
 
 on:
-  # Ejecutar manualmente
   workflow_dispatch:
-  # Ejecutar diariamente de lunes a sábado entre 7am y 11pm (hora de Perú: UTC-5)
   schedule:
+    # Corre cada hora al minuto 0
+    # 12:00 UTC (7am PE) hasta las 04:00 UTC (11pm PE) del día siguiente
     - cron: '0 12-23 * * 1-6'
-    - cron: '0 0-4 * * 1-6'
+    - cron: '0 0-4 * * 2-0'
 
 permissions:
   contents: write
@@ -32,10 +32,13 @@ jobs:
       - name: Convert codigos_generales.xlsx to JSON
         run: node scripts/convert-codigos.js
       
-      - name: Download stock and generate reports
-        run: node scripts/merge-stock.js
+      - name: Download latest stock from appweb
+        run: node scripts/download-stock.js
         env:
           STOCK_URL: ${{ secrets.STOCK_URL }}
+      
+      - name: Merge data and generate Snapshots
+        run: node scripts/merge-stock.js
       
       - name: Configure Git
         run: |
@@ -44,7 +47,6 @@ jobs:
       
       - name: Commit generated reports
         run: |
-          # Añadir todos los archivos generados tanto en la raíz como en el frontend
           git add reports/*.xlsx || true
           git add Data/*.json || true
           git add frontend/public/reports/*.xlsx || true
@@ -53,11 +55,4 @@ jobs:
       - name: Push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "📊 Auto-generate: Reportes de stock $(date +'%d-%m-%y')"
-      
-      - name: Upload reports as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: stock-reports
-          path: reports/
-          retention-days: 30
+          commit_message: "📊 Auto-update: Stock Snapshot $(date +'%d-%m-%y %H:%M')"

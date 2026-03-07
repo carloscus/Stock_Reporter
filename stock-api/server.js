@@ -119,12 +119,6 @@ app.get('/api/stock/drive', async (req, res) => {
       throw new Error('No se pudo extraer el ID del archivo');
     }
     
-    // URL de descarga directa
-    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    
-    const buffer = await downloadFile(downloadUrl);
-    console.log('Archivo descargado, parseando...');
-    
     // Intentar parsear como Excel o JSON
     let stockData;
     try {

@@ -52,23 +52,19 @@ async function runSnapshotUpdate() {
     const productosPath = path.join(__dirname, '..', 'Data', 'productos.json');
     const { productos, metadata: masterMeta } = JSON.parse(fs.readFileSync(productosPath, 'utf8'));
 
-    const stockPath = path.join(__dirname, '..', 'Data', 'reporte_stock_hoy.xlsx');
-    const stockWorkbook = xlsx.readFile(stockPath);
-    const stockRaw = xlsx.utils.sheet_to_json(stockWorkbook.Sheets[stockWorkbook.SheetNames[0]], { header: 1 });
-    
-    const stockMap = new Map();
-    stockRaw.forEach((row, idx) => {
-      if (idx === 0) return;
-      const sku = normalizeSKU(row[1]);
-      const disponible = parseInt(row[18], 10) || 0;
-      if (sku) stockMap.set(sku, (stockMap.get(sku) || 0) + disponible);
-    });
+    // 2. Cargar Stock desde JSON (generado por download-stock.js)
+    const stockJsonPath = path.join(__dirname, '..', 'Data', 'data_stock.json');
+    if (!fs.existsSync(stockJsonPath)) {
+      throw new Error('No se encontró Data/data_stock.json. Ejecute download-stock.js primero.');
+    }
+    const { stock: stockMap } = JSON.parse(fs.readFileSync(stockJsonPath, 'utf8'));
+    console.log('✅ Stock cargado desde JSON intermedio.');
 
     let countSinStock = 0;
     let countBajoStock = 0;
 
     const fullData = productos.map(p => {
-      const stock = stockMap.get(p.sku) || 0;
+      const stock = stockMap[p.sku] || 0;
       let color = GREEN_BG, alerta = '🟢';
       if (stock === 0) { color = RED_BG; alerta = '🔴'; countSinStock++; }
       else if (stock < 10) { color = YELLOW_BG; alerta = '🟡'; countBajoStock++; }
