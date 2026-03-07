@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react'
-import { validarCorreo } from './utils/reportUtils'
+import { validarCorreo, getBloqueo, getIntentos, incrementarIntento, limpiarBloqueo, getTiempoRestante } from './utils/reportUtils'
 
 const CATEGORIAS = [
   { id: 'todos', nombre: 'Todos', hint: 'Reporte completo de todas las líneas' },
@@ -17,6 +17,7 @@ const CATEGORIAS = [
 function App() {
   const [activeTab, setActiveTab] = useState('pulso')
   const [form, setForm] = useState({ nombre: '', email: '', categoria: 'todos' })
+  const [tiempoBloqueo, setTiempoBloqueo] = useState(0)
   const [ui, setUi] = useState({ 
     isValido: false, reporteGenerado: false, theme: 'light',
     isSearching: false, searchTerm: '', allProducts: [], 
@@ -52,6 +53,18 @@ function App() {
     document.documentElement.classList.toggle('dark', savedTheme === 'dark')
   }, [])
 
+  // Actualizar tiempo de bloqueo cada segundo
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      if (getBloqueo()) {
+        setTiempoBloqueo(getTiempoRestante());
+      } else {
+        setTiempoBloqueo(0);
+      }
+    }, 1000);
+    return () => clearInterval(intervalo);
+  }, []);
+
   const toggleTheme = () => {
     const newTheme = ui.theme === 'light' ? 'dark' : 'light'
     setUi(prev => ({ ...prev, theme: newTheme }))
@@ -59,42 +72,55 @@ function App() {
     localStorage.setItem('theme', newTheme)
   }
 
-  useEffect(() => {
-    setUi(prev => ({ ...prev, isValido: validarCorreo(form.email) && form.nombre.length > 2 }))
-  }, [form.email, form.nombre])
-const handleDescargar = async () => {
-  const baseUrl = import.meta.env.BASE_URL;
-  const catSuffix = (form.categoria || 'todos').toUpperCase();
-  const serverFileName = `StockPulse_${catSuffix}.xlsx`; 
-  const downloadPath = `${baseUrl}reports/${serverFileName}`;
-
-  try {
-    // Validar si el archivo existe antes de descargar
-    const response = await fetch(downloadPath);
-    const contentType = response.headers.get('content-type');
-
-    if (!response.ok || (contentType && contentType.includes('text/html'))) {
-      throw new Error('El reporte aún no ha sido procesado por el servidor para hoy.');
-    }
-
-    // Si es válido, disparar la descarga con renombrado
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const opciones = { day: '2-digit', month: '2-digit', year: '2-digit' };
-    const fecha = new Intl.DateTimeFormat('es-PE', opciones).format(new Date()).replace(/\//g, '-');
-    const downloadName = `StockPulse_${catSuffix}_${fecha}.xlsx`;
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = downloadName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    alert(err.message);
+  const validarForm = () => {
+    const validacion = validarCorreo(form.email);
+    setUi(prev => ({ ...prev, isValido: validacion.valido && form.nombre.length > 2 }));
   }
+
+  useEffect(() => {
+    validarForm();
+  }, [form.email, form.nombre])
+
+  const handleDescargar = async () => {
+    const baseUrl = import.meta.env.BASE_URL;
+    const catSuffix = (form.categoria || 'todos').toUpperCase();
+    const serverFileName = `StockPulse_${catSuffix}.xlsx`; 
+    const downloadPath = `${baseUrl}reports/${serverFileName}`;
+
+    try {
+      const response = await fetch(downloadPath);
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok || (contentType && contentType.includes('text/html'))) {
+        const intentos = incrementarIntento();
+        if (intentos >= 3) {
+          alert('Demasiados intentos fallidos. Bloqueado por 5 minutos.');
+        } else {
+          alert(`El reporte aún no ha sido procesado. Intentos: ${intentos}/3`);
+        }
+        setTiempoBloqueo(getTiempoRestante());
+        return;
+      }
+
+      // Éxito - limpiar intentos
+      limpiarBloqueo();
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const opciones = { day: '2-digit', month: '2-digit', year: '2-digit' };
+      const fecha = new Intl.DateTimeFormat('es-PE', opciones).format(new Date()).replace(/\//g, '-');
+      const downloadName = `StockPulse_${catSuffix}_${fecha}.xlsx`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   return (
@@ -170,7 +196,20 @@ const handleDescargar = async () => {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-[13px] font-bold uppercase opacity-60">Email Corporativo</label>
-                  <input className="input-field" placeholder="usuario@cipsa.com.pe" value={form.email} title="Debe usar su correo de @cipsa.com.pe" onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <input 
+                    className="input-field" 
+                    placeholder="usuario@cipsa.com.pe" 
+                    value={form.email} 
+                    title="Debe usar su correo de @cipsa.com.pe"
+                    onChange={(e) => {
+                      const email = e.target.value;
+                      setForm({ ...form, email });
+                      const validacion = validarCorreo(email);
+                      if (!validacion.valido && email) {
+                        alert(validacion.mensaje);
+                      }
+                    }} 
+                  />
                 </div>
                 <div className="flex flex-col gap-4">
                   <label className="text-[13px] font-bold uppercase opacity-60">Filtro de Reporte</label>
@@ -188,8 +227,8 @@ const handleDescargar = async () => {
                   </div>
                 </div>
               </div>
-              <button type="submit" disabled={!ui.isValido} className="btn-primary" title={!ui.isValido ? "Complete los campos para habilitar" : "Generar snapshot de inventario"}>
-                <span className="material-symbols-outlined">analytics</span> Generar Inventario
+              <button type="submit" disabled={!ui.isValido || tiempoBloqueo > 0} className="btn-primary" title={!ui.isValido ? "Complete los campos para habilitar" : tiempoBloqueo > 0 ? `Bloqueado. Intenta en ${tiempoBloqueo}s` : "Generar snapshot de inventario"}>
+                <span className="material-symbols-outlined">analytics</span> {tiempoBloqueo > 0 ? `BLOQUEADO (${tiempoBloqueo}s)` : 'Generar Inventario'}
               </button>
             </form>
 
@@ -200,6 +239,8 @@ const handleDescargar = async () => {
                 <button onClick={handleDescargar} className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95" title="Descargar Excel con renombrado automático">
                   <span className="material-symbols-outlined">download</span> DESCARGAR AHORA
                 </button>
+                <p className="text-[10px] font-bold uppercase opacity-50 mt-4 text-center">Intentos: {getIntentos()}/3</p>
+                {getIntentos() > 0 && <button onClick={limpiarBloqueo} className="text-[10px] text-red-500 underline block mx-auto mt-2">Limpiar intentos</button>}
               </div>
             )}
           </div>

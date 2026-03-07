@@ -8,11 +8,59 @@
 /**
  * Valida si un correo pertenece al dominio corporativo de CIPSA.
  * @param {string} email - Correo a validar.
- * @returns {boolean}
+ * @returns {object} { valido: boolean, mensaje: string }
  */
 export const validarCorreo = (email) => {
-  if (!email) return false;
-  return email.toLowerCase().trim().endsWith('@cipsa.com.pe');
+  if (!email) return { valido: false, mensaje: 'Ingresa tu correo corporativo' };
+  const dominio = '@cipsa.com.pe';
+  if (!email.toLowerCase().trim().endsWith(dominio)) {
+    return { valido: false, mensaje: `Solo se permite correo ${dominio}` };
+  }
+  return { valido: true, mensaje: '' };
+};
+
+/**
+ * Gestiona intentos de descarga y bloqueo temporal
+ */
+const MAX_INTENTOS = 3;
+const TIEMPO_BLOQUEO = 5 * 60 * 1000; // 5 minutos
+
+export const getBloqueo = () => {
+  const bloqueo = localStorage.getItem('stock_bloqueo');
+  if (!bloqueo) return null;
+  const data = JSON.parse(bloqueo);
+  if (Date.now() > data.hasta) {
+    localStorage.removeItem('stock_bloqueo');
+    localStorage.removeItem('stock_intentos');
+    return null;
+  }
+  return data;
+};
+
+export const getIntentos = () => {
+  const intentos = localStorage.getItem('stock_intentos');
+  return intentos ? parseInt(intentos, 10) : 0;
+};
+
+export const incrementarIntento = () => {
+  const intentos = getIntentos() + 1;
+  localStorage.setItem('stock_intentos', intentos.toString());
+  if (intentos >= MAX_INTENTOS) {
+    const hasta = Date.now() + TIEMPO_BLOQUEO;
+    localStorage.setItem('stock_bloqueo', JSON.stringify({ hasta, intentos }));
+  }
+  return intentos;
+};
+
+export const limpiarBloqueo = () => {
+  localStorage.removeItem('stock_bloqueo');
+  localStorage.removeItem('stock_intentos');
+};
+
+export const getTiempoRestante = () => {
+  const bloqueo = getBloqueo();
+  if (!bloqueo) return 0;
+  return Math.ceil((bloqueo.hasta - Date.now()) / 1000);
 };
 
 /**
