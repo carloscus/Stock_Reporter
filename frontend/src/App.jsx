@@ -130,12 +130,17 @@ function App() {
         <div className="fixed inset-0 z-50 bg-white/98 dark:bg-background-dark/98 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
           <div className="p-6 flex items-center gap-4 border-b border-slate-200 dark:border-white/5">
             <span className="material-symbols-outlined text-primary text-3xl">search</span>
-            <input 
-              autoFocus className="flex-1 bg-transparent border-none text-xl font-bold focus:ring-0 outline-none h-12"
-              placeholder="SKU, EAN o nombre..." value={ui.searchTerm}
-              title="Ingrese al menos 2 caracteres para buscar"
-              onChange={(e) => setUi(prev => ({ ...prev, searchTerm: e.target.value }))}
-            />
+            <div className="flex-1">
+              <input 
+                autoFocus className="w-full bg-transparent border-none text-xl font-bold focus:ring-0 outline-none h-12"
+                placeholder="SKU, EAN o nombre..." value={ui.searchTerm}
+                title="Ingrese al menos 2 caracteres para buscar"
+                onChange={(e) => setUi(prev => ({ ...prev, searchTerm: e.target.value }))}
+              />
+              {ui.metadata.lastUpdated && (
+                <p className="text-[10px] text-slate-400">Data actualizada: {new Date(ui.metadata.lastUpdated).toLocaleString('es-PE')}</p>
+              )}
+            </div>
             <button onClick={() => setUi(prev => ({ ...prev, isSearching: false, searchTerm: '' }))} className="size-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-red-50 transition-colors">
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -192,24 +197,30 @@ function App() {
               <div className="space-y-6 bg-white dark:bg-white/2 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
                 <div className="flex flex-col gap-2">
                   <label className="text-[13px] font-bold uppercase opacity-60">Solicitante</label>
-                  <input className="input-field" placeholder="Su nombre" value={form.nombre} title="Nombre de quien descarga el reporte" onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                    <input className="input-field pl-12" placeholder="Su nombre" value={form.nombre} title="Nombre de quien descarga el reporte" onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-[13px] font-bold uppercase opacity-60">Email Corporativo</label>
-                  <input 
-                    className="input-field" 
-                    placeholder="usuario@cipsa.com.pe" 
-                    value={form.email} 
-                    title="Debe usar su correo de @cipsa.com.pe"
-                    onChange={(e) => {
-                      const email = e.target.value;
-                      setForm({ ...form, email });
-                      const validacion = validarCorreo(email);
-                      if (!validacion.valido && email) {
-                        alert(validacion.mensaje);
-                      }
-                    }} 
-                  />
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
+                    <input 
+                      className="input-field pl-12" 
+                      placeholder="usuario@cipsa.com.pe" 
+                      value={form.email} 
+                      title="Debe usar su correo de @cipsa.com.pe"
+                      onChange={(e) => {
+                        const email = e.target.value;
+                        setForm({ ...form, email });
+                        const validacion = validarCorreo(email);
+                        if (!validacion.valido && email) {
+                          alert(validacion.mensaje);
+                        }
+                      }} 
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-4">
                   <label className="text-[13px] font-bold uppercase opacity-60">Filtro de Reporte</label>
