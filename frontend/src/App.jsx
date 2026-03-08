@@ -19,20 +19,43 @@ function App() {
     isStale: false, emailError: ''
   })
 
-  const loadProducts = async () => {
+  const loadProducts = async (forceRefresh = false) => {
     setIsRefreshing(true)
     try {
       const baseUrl = import.meta.env.BASE_URL;
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      
+      // Si se fuerza actualización, intentar obtener datos frescos del servidor
+      if (forceRefresh) {
+        try {
+          console.log('🔄 Solicitando actualización al servidor...');
+          const response = await fetch(`${apiUrl}/api/stock/actualizar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Datos actualizados desde el servidor:', result);
+          } else {
+            console.warn('El servidor no pudo actualizar los datos');
+          }
+        } catch (apiErr) {
+          console.warn('No se pudo conectar con el servidor de actualización:', apiErr.message);
+        }
+      }
+      
       // Agregar timestamp para evitar caché del navegador
       const cacheBuster = `?t=${Date.now()}`
       const res = await fetch(`${baseUrl}productos_con_stock.json${cacheBuster}`)
       if (res.ok) {
         const data = await res.json()
         // Verificar si la data tiene más de 1 hora de antigüedad
+        // Usar UTC para evitar problemas de zona horaria
         const lastUpdated = data.metadata?.lastUpdated ? new Date(data.metadata.lastUpdated) : null
         const now = new Date()
         const oneHour = 60 * 60 * 1000
-        const isStale = lastUpdated ? (now.getTime() - lastUpdated.getTime()) > oneHour : false
+        const timeDiff = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null
+        const isStale = timeDiff ? timeDiff > oneHour : false
         
         setUi(prev => ({ 
           ...prev, 
@@ -40,6 +63,11 @@ function App() {
           metadata: data.metadata || prev.metadata,
           isStale: isStale
         }))
+        
+        // Log para debug
+        if (timeDiff !== null) {
+          console.log(`Data actualizada hace ${Math.round(timeDiff/60000)} minutos. isStale: ${isStale}`);
+        }
       }
     } catch (err) { console.error('Error cargando data:', err) }
     setIsRefreshing(false)
@@ -220,7 +248,7 @@ function App() {
                   <span className="material-symbols-outlined text-red-500">warning</span>
                   <p className="text-sm text-red-600 dark:text-red-400 font-bold">Data desactualizada. Presiona actualizar.</p>
                   <button 
-                    onClick={loadProducts} 
+                    onClick={() => loadProducts(true)} 
                     disabled={isRefreshing}
                     className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
@@ -299,7 +327,7 @@ function App() {
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-slate-500">Monitoreo en tiempo real</p>
               <button 
-                onClick={loadProducts} 
+                onClick={() => loadProducts(true)} 
                 disabled={isRefreshing}
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
@@ -313,6 +341,13 @@ function App() {
                 <p className={`text-lg font-bold ${ui.metadata.lastUpdated ? (ui.isStale ? 'text-red-500 animate-pulse' : 'text-emerald-500') : 'text-slate-400'}`}>
                   {ui.metadata.lastUpdated ? new Date(ui.metadata.lastUpdated).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Sin datos'}
                 </p>
+                {ui.metadata.lastUpdated && (
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    UTC: {new Date(ui.metadata.lastUpdated).toISOString().slice(11, 19)}
+                    <span className="mx-1">•</span>
+                    {Math.round((new Date() - new Date(ui.metadata.lastUpdated)) / 60000)} min atrás
+                  </p>
+                )}
                 {ui.isStale && (
                   <p className="text-[10px] text-red-500 font-bold mt-1">⚠ Data desactualizada</p>
                 )}

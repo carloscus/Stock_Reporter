@@ -9,6 +9,14 @@ path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Configuración de rutas para archivos
+const DATA_DIR = path.join(__dirname, '..', 'Data');
+const FRONTEND_PUBLIC_DIR = path.join(__dirname, '..', 'frontend', 'public');
+const PRODUCTOS_JSON_PATH = path.join(DATA_DIR, 'productos.json');
+const DATA_STOCK_JSON_PATH = path.join(DATA_DIR, 'data_stock.json');
+const OUTPUT_JSON_PATH = path.join(DATA_DIR, 'productos_con_stock.json');
+const OUTPUT_JSON_PUBLIC_PATH = path.join(FRONTEND_PUBLIC_DIR, 'productos_con_stock.json');
+
 // ============================================
 // FUNCIÓN DE LIMPIEZA SEMANAL DE LOGS
 // ============================================
@@ -205,6 +213,97 @@ app.get('/api/stock/drive', async (req, res) => {
 // Endpoint: Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Endpoint: Forzar actualización de datos (regenerar JSON)
+app.post('/api/stock/actualizar', async (req, res) => {
+  try {
+    console.log('🔄 Iniciando actualización de datos...');
+    
+    // 1. Verificar que existen los archivos de códigos
+    if (!fs.existsSync(PRODUCTOS_JSON_PATH)) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'No se encontró el archivo de códigos de productos. Ejecute los scripts de merge localmente.' 
+      });
+    }
+    
+    const productosData = JSON.parse(fs.readFileSync(PRODUCTOS_JSON_PATH, 'utf8'));
+    const productos = productosData.productos || [];
+    console.log(`✅ Códigos de productos cargados: ${productos.length}`);
+    
+    // 2. Descargar stock desde appweb
+    const stockUrl = 'http://appweb.cipsa.com.pe:8054/AlmacenStock/DownLoadFiles?value={%22%20%22:%22%22,%22parametroX1%22:%220%22,%22parametroX2%22:%220%22}';
+    const buffer = await downloadFile(stockUrl);
+    
+    // Parsear Excel
+    const workbook = xlsx.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rawData = xlsx.utils.sheet_to_json(worksheet);
+    
+    // Crear mapa de stock
+    const stockMap = {};
+    rawData.forEach(row => {
+      if (row.Column2 && row.Column2 !== 'Total' && row.Column2 !== 'TOTAL') {
+        const sku = String(row.Column2).trim();
+        stockMap[sku] = parseInt(row.Column19, 10) || 0;
+      }
+    });
+    console.log(`✅ Stock descargado: ${Object.keys(stockMap).length} productos`);
+    
+    // 3. Merge: combinar productos con stock
+    let countSinStock = 0;
+    let countBajoStock = 0;
+    
+    const fullData = productos.map(p => {
+      const stock = stockMap[p.sku] || 0;
+      const minCajas = 5;
+      const stockMinimo = (p.unBx || 1) * minCajas;
+      let estado = 'OK';
+      if (stock === 0) { estado = 'AGOTADO'; countSinStock++; }
+      else if (stock < stockMinimo) { estado = 'BAJO'; countBajoStock++; }
+      return { ...p, stock, estado };
+    });
+    
+    // 4. Guardar JSON
+    const outputJSON = {
+      metadata: {
+        lastUpdated: new Date().toISOString(),
+        totalProducts: fullData.length,
+        almacen: 'VES',
+        sinStock: countSinStock,
+        bajoStock: countBajoStock,
+        status: 'OPERATIVO'
+      },
+      productos: fullData
+    };
+    
+    // Guardar en Data/
+    fs.writeFileSync(OUTPUT_JSON_PATH, JSON.stringify(outputJSON, null, 2));
+    console.log(`✅ JSON guardado en: ${OUTPUT_JSON_PATH}`);
+    
+    // Guardar en frontend/public/
+    const frontendDir = path.dirname(OUTPUT_JSON_PUBLIC_PATH);
+    if (!fs.existsSync(frontendDir)) {
+      fs.mkdirSync(frontendDir, { recursive: true });
+    }
+    fs.writeFileSync(OUTPUT_JSON_PUBLIC_PATH, JSON.stringify(outputJSON, null, 2));
+    console.log(`✅ JSON guardado en: ${OUTPUT_JSON_PUBLIC_PATH}`);
+    
+    res.json({
+      success: true,
+      message: 'Datos actualizados correctamente',
+      metadata: outputJSON.metadata
+    });
+    
+  } catch (error) {
+    console.error('❌ Error en actualización:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
 });
 
 // Endpoint: Registrar descarga de reporte
