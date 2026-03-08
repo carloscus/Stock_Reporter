@@ -107,7 +107,6 @@ function App() {
 
   const handleDescargar = async () => {
     const baseUrl = import.meta.env.BASE_URL;
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
     const catSuffix = (form.categoria || 'todos').toUpperCase();
     const serverFileName = `StockPulse_${catSuffix}.xlsx`; 
     const downloadPath = `${baseUrl}reports/${serverFileName}`;
@@ -130,22 +129,6 @@ function App() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
-      // Registrar descarga en el servidor API
-      try {
-        await fetch(`${apiUrl}/api/descargas/registrar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombre: form.nombre,
-            email: form.email,
-            categoria: form.categoria,
-            timestamp: new Date().toISOString()
-          })
-        });
-      } catch (regError) {
-        console.warn('No se pudo registrar la descarga:', regError);
-      }
       
       // Limpiar formulario después de descargar para evitar descargas excesivas
       setForm({ nombre: '', email: '', categoria: 'todos' })
