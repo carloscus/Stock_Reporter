@@ -289,8 +289,16 @@ function App() {
         ) : (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 pt-10">
             <h1 className="text-3xl font-bold mb-2 text-primary">Estado del Sistema</h1>
+            <p className="text-sm text-slate-500 mb-6">Monitoreo en tiempo real</p>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl mb-6 border border-blue-200 dark:border-blue-800">
+              <h3 className="font-bold text-sm text-blue-700 dark:text-blue-300 mb-2">ℹ️ Acerca de StockPulse</h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                StockPulse es una aplicación que genera reportes de inventario de CIPSA. 
+                Los datos se actualizan automáticamente cada hora mediante un bot de GitHub Actions. 
+                También puedes forzar una actualización manual desde esta pantalla.
+              </p>
+            </div>
             <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-slate-500">Monitoreo en tiempo real</p>
               <button 
                 onClick={() => loadProducts(true)} 
                 disabled={isRefreshing}
@@ -301,7 +309,7 @@ function App() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800">
+              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800 relative group">
                 <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Último Pulso</p>
                 <p className={`text-lg font-bold ${ui.metadata.lastUpdated ? (ui.isStale ? 'text-red-500 animate-pulse' : 'text-emerald-500') : 'text-slate-400'}`}>
                   {ui.metadata.lastUpdated ? new Date(ui.metadata.lastUpdated).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Sin datos'}
@@ -316,8 +324,12 @@ function App() {
                 {ui.isStale && (
                   <p className="text-[10px] text-red-500 font-bold mt-1">⚠ Data desactualizada</p>
                 )}
+                {/* Tooltip */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs p-2 rounded-lg w-48 z-10">
+                  Hora de la última actualización del stock. Se considera desactualizado después de 1 hora.
+                </div>
               </div>
-              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800">
+              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800 relative group">
                 <p className="text-[10px] font-bold uppercase opacity-50 mb-2">Estado Bot</p>
                 <div className="flex items-center gap-2 text-emerald-500">
                   <span className="relative flex h-3 w-3">
@@ -326,8 +338,12 @@ function App() {
                   </span>
                   <p className="font-bold">OK</p>
                 </div>
+                {/* Tooltip */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs p-2 rounded-lg w-48 z-10">
+                  Sistema operativo. El bot de GitHub Actions actualiza los datos automáticamente.
+                </div>
               </div>
-              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800 col-span-2">
+              <div className="p-6 bg-white dark:bg-[#1a2a2c] rounded-3xl border border-slate-100 dark:border-slate-800 col-span-2 relative group">
                 <div className="flex justify-between items-center">
                   <div className="text-center flex-1">
                     <p className="text-2xl font-bold">{ui.metadata.totalProducts}</p>
@@ -341,6 +357,12 @@ function App() {
                     <p className="text-2xl font-bold">{ui.metadata.bajoStock}</p>
                     <p className="text-[10px] opacity-50 uppercase">Críticos</p>
                   </div>
+                </div>
+                {/* Tooltip */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs p-2 rounded-lg w-48 z-10">
+                  <b>Items:</b> Total de productos en inventario<br/>
+                  <b>Agotados:</b> Productos con stock = 0<br/>
+                  <b>Críticos:</b> Productos por debajo del mínimo (5 cajas)
                 </div>
               </div>
             </div>
