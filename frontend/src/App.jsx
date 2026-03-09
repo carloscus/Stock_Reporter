@@ -236,7 +236,8 @@ function App() {
             <p className="text-[9px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mt-1">Inteligencia • CIPSA</p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setUi(prev => ({ ...prev, isSearching: true }))} className="size-11 flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-900/30 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Buscar SKU</span>
+            <button onClick={() => setUi(prev => ({ ...prev, isSearching: true }))} className="size-11 flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-900/30 text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all" title="Busca puntualmente por SKU o descripción">
               <span className="material-symbols-outlined">search</span>
             </button>
           </div>
@@ -279,6 +280,30 @@ function App() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* GUÍA RÁPIDA */}
+            <div className="py-4">
+              <div className="p-4 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="material-symbols-outlined text-brand-600 dark:text-brand-400">info</span>
+                  <span className="font-black text-sm text-brand-700 dark:text-brand-400">CÓMO USAR</span>
+                </div>
+                <ol className="text-xs text-brand-800 dark:text-brand-300 space-y-1.5">
+                  <li className="flex items-start gap-2">
+                    <span className="font-black text-brand-500">1.</span>
+                    Ingresa tu correo corporativo y nombre
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-black text-brand-500">2.</span>
+                    Selecciona la categoría de interés
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-black text-brand-500">3.</span>
+                    Genera y descarga el reporte de stock
+                  </li>
+                </ol>
+              </div>
             </div>
 
             <form onSubmit={(e) => {e.preventDefault(); setUi(prev => ({...prev, reporteGenerado: true}))}} className="py-6 space-y-8">
