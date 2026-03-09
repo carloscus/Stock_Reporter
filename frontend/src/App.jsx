@@ -229,7 +229,7 @@ function App() {
       <header className="border-b sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
         <div className="max-w-4xl mx-auto flex items-center p-4 justify-between w-full">
           <div className="flex size-11 shrink-0 items-center overflow-hidden rounded-2xl bg-white dark:bg-slate-100 p-1.5 shadow-sm border border-slate-200">
-            <img src="favicon.svg" alt="Logo" className="h-full w-full object-contain" />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" className="h-full w-full object-contain" />
           </div>
           <div className="flex flex-1 px-4 flex-col">
             <h2 className="text-xl leading-none font-black tracking-tight text-slate-900 dark:text-white">StockPulse</h2>

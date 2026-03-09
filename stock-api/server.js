@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-xlsx = require('xlsx'),
-https = require('https'),
-http = require('http'),
-fs = require('fs'),
-path = require('path');
+const xlsx = require('xlsx');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -163,6 +163,9 @@ app.get('/api/stock/drive', async (req, res) => {
     if (!fileId) {
       throw new Error('No se pudo extraer el ID del archivo');
     }
+    
+    // Descargar el archivo desde Google Drive
+    const buffer = await downloadFile(url);
     
     // Intentar parsear como Excel o JSON
     let stockData;
@@ -340,7 +343,7 @@ app.post('/api/descargas/registrar', (req, res) => {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
       nombre: nombre.trim(),
       email: email.toLowerCase().trim(),
-      categoria: categoria,
+      categoria,
       timestamp: timestamp || new Date().toISOString(),
       ip: req.ip || req.connection.remoteAddress || 'desconocido',
       userAgent: req.headers['user-agent'] || 'desconocido'

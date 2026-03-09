@@ -23,7 +23,7 @@ async function downloadAndConvert() {
     process.exit(1);
   }
 
-  console.log('📥 Iniciando descarga de stock...');
+  console.log('📥 Iniciando descarga de stock desde:', STOCK_URL);
   
   const protocol = STOCK_URL.startsWith('https') ? https : http;
 
