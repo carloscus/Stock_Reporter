@@ -80,22 +80,10 @@ jobs:
           git add frontend/public/reports/*.xlsx || true
           git add frontend/public/productos_con_stock.json || true
         
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+      - name: Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "📊 Auto-update: Stock Snapshot $(date +'%d-%m-%y %H:%M')"
-          branch: "stock-snapshot-$(date +'%Y%m%d-%H%M')"
-          title: "📊 Auto-update: Stock Snapshot $(date +'%d-%m-%y %H:%M')"
-          body: |
-            Auto-generated Pull Request with updated stock reports.
-            
-            **Generated files:**
-            - reports/*.xlsx
-            - Data/*.json
-            - frontend/public/reports/*.xlsx
-            - frontend/public/productos_con_stock.json
-            
-            _This PR was created automatically by GitHub Actions._
-          delete-branch: true
+          commit_message: "📊 Auto-update: Stock Snapshot"
+          create_pr: false
+          push_options: "--force"
       
