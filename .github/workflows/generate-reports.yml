@@ -14,6 +14,7 @@ on:
       - 'scripts/**'
       - 'frontend/public/**'
       - 'reports/**'
+      - '.github/workflows/**'
 
 permissions:
   contents: write
