@@ -47,8 +47,20 @@ jobs:
 
       - name: Copy static files to dist
         run: |
-          cp frontend/public/productos_con_stock.json frontend/dist/
-          cp -r frontend/public/reports frontend/dist/
+          # Copy static data files if they exist
+          if [ -f "frontend/public/productos_con_stock.json" ]; then
+            echo "✅ Copying productos_con_stock.json"
+            cp frontend/public/productos_con_stock.json frontend/dist/
+          else
+            echo "⚠️  Warning: productos_con_stock.json not found"
+          fi
+
+          if [ -d "frontend/public/reports" ]; then
+            echo "✅ Copying reports directory"
+            cp -r frontend/public/reports frontend/dist/
+          else
+            echo "⚠️  Warning: reports directory not found"
+          fi
 
       - name: Deploy to GitHub Pages
         id: deploy

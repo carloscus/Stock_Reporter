@@ -2,6 +2,8 @@ name: Configure Production Environment
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [setup-environment]
 
 jobs:
   setup-environment:
@@ -12,35 +14,46 @@ jobs:
         with:
           script: |
             const environmentName = 'github-pages';
-            
+
             try {
+              // Check if environment already exists
+              let existingEnv;
+              try {
+                existingEnv = await github.rest.repos.getEnvironment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  environment_name: environmentName
+                });
+                console.log(`ℹ️  Environment '${environmentName}' already exists`);
+              } catch (notFound) {
+                console.log(`ℹ️  Environment '${environmentName}' does not exist, creating...`);
+              }
+
               // Create or update the environment with protection rules
-              // The API automatically creates if doesn't exist, updates if it does
-              await github.rest.repos.createOrUpdateEnvironment({
+              const result = await github.rest.repos.createOrUpdateEnvironment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 environment_name: environmentName,
-                wait_timer: 0,  // Minutes to wait before deployment (0 = immediate after approval)
+                wait_timer: 0,  // Minutes to wait before deployment (0 = immediate)
                 review_users: [],
                 deployment_branch_policy: {
-                  // Only allow deployment from protected branches
-                  protected_branches: true,
+                  protected_branches: false,  // Allow from any branch
                   custom_branch_policies: false
-                },
-                // Optionally restrict to specific branches
-                // branch_policy can be: "all", "protected", or "selected"
-                branch_policy: "all"
+                }
               });
 
               console.log(`✅ Environment '${environmentName}' configured successfully!`);
-              console.log('   - Required reviewers: NONE');
-              console.log('   - Branch policy: all branches allowed');
+              console.log('   📋 Configuration:');
+              console.log('      • Wait timer: 0 minutes (immediate deployment)');
+              console.log('      • Required reviewers: None');
+              console.log('      • Branch policy: All branches allowed');
               console.log('');
-              console.log('⚠️  NOTE: To add required reviewers, go to:');
-              console.log(`   Settings > Environments > ${environmentName} > Add reviewers`);
-              
+              console.log('📝 To add reviewers manually:');
+              console.log(`   Settings → Environments → ${environmentName} → Required reviewers`);
+
             } catch (error) {
               console.error(`❌ Error configuring environment: ${error.message}`);
+              console.error('💡 Note: This requires repository admin permissions');
               throw error;
             }
         env:

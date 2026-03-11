@@ -1,10 +1,9 @@
 name: Apply Branch Protection Rules
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  repository_dispatch:
+    types: [setup-protection]
 
 jobs:
   protect-branch:

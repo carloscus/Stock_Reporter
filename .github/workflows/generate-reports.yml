@@ -69,13 +69,28 @@ jobs:
           STOCK_URL: ${{ secrets.STOCK_URL }}
       
       - name: Merge data and generate Snapshots
-        run: node scripts/merge-stock.js
-      
+        run: |
+          echo "🔄 Generating stock reports..."
+          node scripts/merge-stock.js
+
+          # Validate that files were created
+          if [ ! -f "frontend/public/productos_con_stock.json" ]; then
+            echo "❌ Error: productos_con_stock.json was not generated"
+            exit 1
+          fi
+
+          if [ ! -d "reports" ] || [ ! -d "frontend/public/reports" ]; then
+            echo "❌ Error: Reports directories were not created"
+            exit 1
+          fi
+
+          echo "✅ All files generated successfully"
+
       - name: Commit and Push Report Changes
         id: autocommit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "📊 Auto-update: Stock Snapshot"
+          commit_message: "📊 Auto-update: Stock Snapshot - $(date +'%Y-%m-%d %H:%M' -d '-5 hours')"
           file_pattern: |
             reports/*.xlsx
             Data/*.json
