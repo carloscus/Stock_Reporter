@@ -68,10 +68,13 @@ jobs:
       - name: Convert codigos_generales.xlsx to JSON
         run: node scripts/convert-codigos.js
       
-      - name: Download latest stock from appweb
-        run: node scripts/download-stock.js
-        env:
-          STOCK_URL: ${{ secrets.STOCK_URL }}
+      - name: Download stock from Stock API server
+        run: |
+          echo "📡 Calling Stock API server to update data..."
+          curl -X POST ${{ secrets.STOCK_API_URL }}/api/stock/actualizar \
+            -H "Content-Type: application/json" \
+            -w "\n📊 HTTP Status: %{http_code}\n" \
+            --max-time 120 || echo "⚠️  Stock API call failed, proceeding with existing data"
 
       - name: Verify Download Results
         run: |

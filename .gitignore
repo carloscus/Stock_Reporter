@@ -41,3 +41,6 @@ Data/productos_con_stock.json
 
 # Mantener logs de descargas (se limpia semanalmente)
 !stock-api/logs/
+
+# Archivo Excel de stock (subir manualmente cuando se actualice)
+Data/stock.xlsx
