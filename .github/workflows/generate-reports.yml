@@ -68,130 +68,18 @@ jobs:
       - name: Convert codigos_generales.xlsx to JSON
         run: node scripts/convert-codigos.js
       
-      - name: Attempt Direct CIPSA Download & Processing
+      - name: Download Stock Data
+        env:
+          STOCK_URL: ${{ secrets.STOCK_API_URL }}
+        run: node scripts/download-stock.js
+      
+      - name: Verify Stock Data
         run: |
-          echo "📡 Attempting direct download from CIPSA..."
-          CIPSA_URL="http://appweb.cipsa.com.pe:8054/AlmacenStock/DownLoadFiles?value={%22%20%22:%22%22,%22parametroX1%22:%220%22,%22parametroX2%22:%220%22}"
-
-          echo "🔗 CIPSA URL: $CIPSA_URL"
-          echo "⚠️  Note: This will fail because GitHub Actions cannot access internal CIPSA network"
-
-          # Try direct download (will definitely fail from GitHub Actions)
-          if curl -f "$CIPSA_URL" \
-               -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-               --max-time 15 \
-               --output Data/cipsa_stock.xlsx 2>/dev/null; then
-
-            echo "✅ Download successful! Processing Excel file..."
-
-            # Process Excel file using Node.js
-            node -e "
-              const xlsx = require('xlsx');
-              console.log('📊 Processing downloaded Excel...');
-
-              try {
-                const workbook = xlsx.readFile('Data/cipsa_stock.xlsx');
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
-
-                console.log('📋 Rows found:', rawData.length);
-
-                const stockMap = {};
-                rawData.forEach((row, index) => {
-                  if (index === 0) return; // Skip header
-
-                  const sku = String(row[1] || '').trim();
-                  const almacen = String(row[9] || '').trim().toUpperCase();
-                  const disponible = parseInt(row[18], 10) || 0;
-
-                  if (sku && (almacen === 'VES' || almacen === '')) {
-                    stockMap[sku] = (stockMap[sku] || 0) + disponible;
-                  }
-                });
-
-                const result = {
-                  lastUpdate: new Date().toISOString(),
-                  stock: stockMap,
-                  metadata: {
-                    totalProducts: Object.keys(stockMap).length,
-                    source: 'CIPSA_DIRECT',
-                    url: '$CIPSA_URL'
-                  }
-                };
-
-                require('fs').writeFileSync('Data/data_stock.json', JSON.stringify(result, null, 2));
-                console.log('✅ Processed', Object.keys(stockMap).length, 'products from CIPSA');
-
-                if (stockMap['011883']) {
-                  console.log('🔍 Product 011883 stock:', stockMap['011883']);
-                }
-
-              } catch (error) {
-                console.error('❌ Error processing Excel:', error.message);
-              }
-            "
-
-            # Clean up downloaded file
-            rm -f Data/cipsa_stock.xlsx
-            echo "🧹 Cleaned up temporary Excel file"
-
-          else
-            echo "❌ Direct download failed (as expected - network restrictions)"
-            echo "💡 To enable automated downloads, deploy the Stock API server:"
-            echo "   1. Run stock-api/server.js on a publicly accessible server"
-            echo "   2. Configure STOCK_API_URL in GitHub Secrets"
-            echo "🔄 Proceeding with existing data..."
-          fi
-
-      - name: Verify Download Results
-        run: |
-          echo "🔍 Verifying stock data..."
           if [ -f "Data/data_stock.json" ]; then
-            echo "✅ data_stock.json exists"
-            head -n 20 Data/data_stock.json
-            PRODUCT_COUNT=$(jq '.stock | length' Data/data_stock.json 2>/dev/null || echo "0")
-            echo "📊 Total products in data: $PRODUCT_COUNT"
-
-            # Check for specific product
-            PRODUCT_011883=$(jq '.stock["011883"]' Data/data_stock.json 2>/dev/null || echo "null")
-            echo "🔍 Product 011883 stock: $PRODUCT_011883"
-
-            if [ "$PRODUCT_COUNT" -eq 0 ]; then
-              echo "⚠️  No products found, checking for backup data..."
-              if [ -f "frontend/public/productos_con_stock.json" ]; then
-                echo "✅ Using existing productos_con_stock.json as fallback"
-                node -e "
-                  const fs = require('fs');
-                  const data = JSON.parse(fs.readFileSync('frontend/public/productos_con_stock.json', 'utf8'));
-                  const stockMap = {};
-                  data.productos.forEach(p => { stockMap[p.sku] = p.stock; });
-                  fs.writeFileSync('Data/data_stock.json', JSON.stringify({
-                    lastUpdate: new Date().toISOString(),
-                    stock: stockMap,
-                    metadata: { totalProducts: Object.keys(stockMap).length, source: 'FALLBACK' }
-                  }, null, 2));
-                "
-              fi
-            fi
+            echo "✅ data_stock.json created successfully."
           else
-            echo "⚠️  data_stock.json not found, checking for existing data..."
-            if [ -f "frontend/public/productos_con_stock.json" ]; then
-              echo "✅ Using existing productos_con_stock.json"
-              node -e "
-                const fs = require('fs');
-                const data = JSON.parse(fs.readFileSync('frontend/public/productos_con_stock.json', 'utf8'));
-                const stockMap = {};
-                data.productos.forEach(p => { stockMap[p.sku] = p.stock; });
-                fs.writeFileSync('Data/data_stock.json', JSON.stringify({
-                  lastUpdate: new Date().toISOString(),
-                  stock: stockMap,
-                  metadata: { totalProducts: Object.keys(stockMap).length, source: 'FALLBACK' }
-                }, null, 2));
-              "
-            else
-              echo "❌ No stock data available"
-              exit 1
-            fi
+            echo "❌ Error: data_stock.json was not created."
+            exit 1
           fi
       
       - name: Merge data and generate Snapshots

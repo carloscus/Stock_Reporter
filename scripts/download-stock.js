@@ -21,7 +21,15 @@ async function processExcelFromBuffer(buffer) {
   console.log('📊 Procesando archivo Excel...');
 
   const workbook = xlsx.read(buffer, { type: 'buffer' });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const sheetName = "ReportGenerado";
+  const sheet = workbook.Sheets[sheetName];
+
+  if (!sheet) {
+    console.error(`❌ ERROR: No se pudo encontrar la hoja '${sheetName}' en el archivo Excel.`);
+    console.error(`   Hojas disponibles: ${workbook.SheetNames.join(', ')}`);
+    // Si la hoja no se encuentra, salimos para evitar procesar datos incorrectos.
+    process.exit(1); 
+  }
 
   // Leer como texto formateado para preservar ceros (02210)
   const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
@@ -37,6 +45,11 @@ async function processExcelFromBuffer(buffer) {
     const sku = String(row[1] || '').trim(); // Sin eliminar ceros - preservar como viene
     const almacen = String(row[9] || '').trim().toUpperCase();
     const disponible = parseInt(row[18], 10) || 0;
+
+    // TEMP LOG: Imprimir las primeras 5 filas para diagnóstico
+    if (index > 0 && index < 6) {
+      console.log(`[DIAGNOSTIC] Row ${index}: SKU='${sku}', Almacen='${almacen}', Disponible='${disponible}', RawRow=${JSON.stringify(row)}`);
+    }
 
     if (sku && (almacen === 'VES' || almacen === '')) {
       stockMap[sku] = (stockMap[sku] || 0) + disponible;
