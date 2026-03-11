@@ -23,6 +23,7 @@ async function downloadAndConvert() {
   }
 
   console.log('📥 Iniciando descarga de stock desde:', STOCK_URL);
+  console.log('🔗 URL decodificada:', decodeURIComponent(STOCK_URL));
 
   try {
     const response = await axios.get(STOCK_URL, {
@@ -60,12 +61,27 @@ async function downloadAndConvert() {
     });
 
     const outputPath = path.join(__dirname, '..', 'Data', 'data_stock.json');
-    fs.writeFileSync(outputPath, JSON.stringify({
+    const result = {
       lastUpdate: new Date().toISOString(),
-      stock: stockMap
-    }, null, 2));
+      stock: stockMap,
+      metadata: {
+        totalProducts: Object.keys(stockMap).length,
+        sampleProducts: Object.entries(stockMap).slice(0, 5),
+        url: STOCK_URL ? 'CONFIGURADA' : 'NO_CONFIGURADA'
+      }
+    };
+
+    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
 
     console.log(`✅ Data de stock guardada: ${Object.keys(stockMap).length} productos procesados.`);
+    console.log(`📊 Muestra de productos:`, Object.entries(stockMap).slice(0, 3));
+
+    // Verificar si existe el producto específico mencionado
+    if (stockMap['011883'] !== undefined) {
+      console.log(`🔍 Producto 011883 encontrado: ${stockMap['011883']} unidades`);
+    } else {
+      console.log(`⚠️  Producto 011883 NO encontrado en los datos descargados`);
+    }
 
   } catch (error) {
     if (error.code === 'ECONNABORTED') {

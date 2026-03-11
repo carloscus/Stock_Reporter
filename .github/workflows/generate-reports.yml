@@ -72,6 +72,23 @@ jobs:
         run: node scripts/download-stock.js
         env:
           STOCK_URL: ${{ secrets.STOCK_URL }}
+
+      - name: Verify Download Results
+        run: |
+          echo "🔍 Verifying downloaded data..."
+          if [ -f "Data/data_stock.json" ]; then
+            echo "✅ data_stock.json exists"
+            head -n 20 Data/data_stock.json
+            PRODUCT_COUNT=$(jq '.stock | length' Data/data_stock.json 2>/dev/null || echo "0")
+            echo "📊 Total products downloaded: $PRODUCT_COUNT"
+
+            # Check for specific product
+            PRODUCT_011883=$(jq '.stock["011883"]' Data/data_stock.json 2>/dev/null || echo "null")
+            echo "🔍 Product 011883 stock: $PRODUCT_011883"
+          else
+            echo "❌ data_stock.json not found"
+            exit 1
+          fi
       
       - name: Merge data and generate Snapshots
         run: |
