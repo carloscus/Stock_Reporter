@@ -36,8 +36,8 @@ Data/data_stock.json
 Data/productos.json
 Data/productos_con_stock.json
 
-# Mantener el JSON en public para el buscador
-!frontend/public/productos_con_stock.json
+# Generar el JSON en public para el buscador (no commited)
+# !frontend/public/productos_con_stock.json
 
 # Mantener logs de descargas (se limpia semanalmente)
 !stock-api/logs/
