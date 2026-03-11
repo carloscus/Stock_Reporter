@@ -21,14 +21,16 @@ async function processExcelFromBuffer(buffer) {
   console.log('📊 Procesando archivo Excel...');
 
   const workbook = xlsx.read(buffer, { type: 'buffer' });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Usar primera hoja
+  const sheetName = workbook.SheetNames.includes("ReportGenerado") ? "ReportGenerado" : workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
 
   if (!sheet) {
-    console.error(`❌ ERROR: No se pudo encontrar ninguna hoja en el archivo Excel.`);
+    console.error(`❌ ERROR: No se pudo encontrar la hoja '${sheetName}' en el archivo Excel.`);
+    console.error(`   Hojas disponibles: ${workbook.SheetNames.join(', ')}`);
     process.exit(1);
   }
 
-  console.log(`📋 Hoja procesada: ${workbook.SheetNames[0]}`);
+  console.log(`📋 Hoja procesada: ${sheetName}`);
 
   // Leer como texto formateado para preservar ceros (02210)
   const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
@@ -161,7 +163,7 @@ async function downloadAndConvert() {
   try {
     const response = await axios.get(STOCK_URL, {
       responseType: 'arraybuffer',
-      timeout: 30000,
+      timeout: 120000,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
