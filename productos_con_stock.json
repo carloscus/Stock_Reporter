@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-03-20T12:59:34.773Z",
+    "lastUpdated": "2026-03-20T14:04:42.982Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 179,
@@ -10780,7 +10780,7 @@
       "linea": "ACCESORIOS",
       "categoria": "ESCOLAR",
       "unBx": 144,
-      "stock": 3,
+      "stock": 4,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
