@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-03-27T14:50:10.842Z",
+    "lastUpdated": "2026-03-27T15:53:19.504Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 188,
@@ -2772,7 +2772,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 50,
-      "stock": 11933,
+      "stock": 11633,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -8024,7 +8024,7 @@
       "linea": "ESCRITURA",
       "categoria": "ESCOLAR",
       "unBx": 1152,
-      "stock": 3348,
+      "stock": 3048,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
