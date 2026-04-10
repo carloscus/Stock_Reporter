@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-10T13:10:05.216Z",
+    "lastUpdated": "2026-04-10T14:48:21.101Z",
     "totalProducts": 1088,
     "almacen": "VES",
-    "sinStock": 211,
-    "bajoStock": 290,
+    "sinStock": 212,
+    "bajoStock": 289,
     "status": "OPERATIVO"
   },
   "productos": [
@@ -471,7 +471,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 48,
-      "stock": 7592,
+      "stock": 7595,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -1030,7 +1030,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 60,
-      "stock": 1921,
+      "stock": 5855,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -11612,10 +11612,10 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 30,
-      "stock": 110,
-      "estado": "⚠ BAJO",
-      "bgColor": "FFFEF3C7",
-      "fontColor": "FFD97706"
+      "stock": 0,
+      "estado": "✗ AGOTADO",
+      "bgColor": "FFFEE2E2",
+      "fontColor": "FFDC2626"
     },
     {
       "orden": 894,
