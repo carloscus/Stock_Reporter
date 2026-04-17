@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-17T21:41:07.744Z",
+    "lastUpdated": "2026-04-17T22:38:48.073Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 206,
@@ -7790,7 +7790,7 @@
       "linea": "ESCRITURA",
       "categoria": "ESCOLAR",
       "unBx": 200,
-      "stock": 29024,
+      "stock": 28964,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -8570,7 +8570,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 24,
-      "stock": 84,
+      "stock": 83,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -11950,7 +11950,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 120,
-      "stock": 2457,
+      "stock": 2421,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -12002,7 +12002,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 120,
-      "stock": 1165,
+      "stock": 1159,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -12405,7 +12405,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 240,
-      "stock": 1894,
+      "stock": 1870,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -12561,7 +12561,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 240,
-      "stock": 3202,
+      "stock": 3166,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -12652,7 +12652,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 40,
-      "stock": 5579,
+      "stock": 5559,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -13666,7 +13666,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 72,
-      "stock": 10,
+      "stock": 8,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
