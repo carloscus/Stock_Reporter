@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-18T14:39:10.478Z",
+    "lastUpdated": "2026-04-18T15:37:02.017Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 206,
@@ -861,7 +861,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 60,
-      "stock": 1097,
+      "stock": 1095,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
