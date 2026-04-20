@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-20T21:51:04.619Z",
+    "lastUpdated": "2026-04-20T22:42:41.612Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 206,
-    "bajoStock": 291,
+    "bajoStock": 292,
     "status": "OPERATIVO"
   },
   "productos": [
@@ -12678,10 +12678,10 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 40,
-      "stock": 645,
-      "estado": "✓ OK",
-      "bgColor": "FFD1FAE5",
-      "fontColor": "FF065F46"
+      "stock": 45,
+      "estado": "⚠ BAJO",
+      "bgColor": "FFFEF3C7",
+      "fontColor": "FFD97706"
     },
     {
       "orden": 976,
