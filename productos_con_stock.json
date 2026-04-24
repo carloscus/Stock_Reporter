@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-24T02:37:25.613Z",
+    "lastUpdated": "2026-04-24T13:44:38.577Z",
     "totalProducts": 1088,
     "almacen": "VES",
-    "sinStock": 220,
-    "bajoStock": 294,
+    "sinStock": 219,
+    "bajoStock": 295,
     "status": "OPERATIVO"
   },
   "productos": [
@@ -263,7 +263,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 36,
-      "stock": 7393,
+      "stock": 7399,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -432,7 +432,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 50,
-      "stock": 163,
+      "stock": 164,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -731,7 +731,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 36,
-      "stock": 1847,
+      "stock": 1747,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -965,7 +965,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 60,
-      "stock": 3704,
+      "stock": 3705,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -1537,10 +1537,10 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 12,
-      "stock": 0,
-      "estado": "✗ AGOTADO",
-      "bgColor": "FFFEE2E2",
-      "fontColor": "FFDC2626"
+      "stock": 8,
+      "estado": "⚠ BAJO",
+      "bgColor": "FFFEF3C7",
+      "fontColor": "FFD97706"
     },
     {
       "orden": 119,
@@ -1576,7 +1576,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 12,
-      "stock": 1413,
+      "stock": 1423,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -1602,7 +1602,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 12,
-      "stock": 2002,
+      "stock": 2008,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -1836,7 +1836,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 120,
-      "stock": 2946,
+      "stock": 2947,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
