@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-04-25T02:27:14.471Z",
+    "lastUpdated": "2026-04-25T13:04:18.382Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 220,
@@ -10364,7 +10364,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 40,
-      "stock": 21,
+      "stock": 141,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
