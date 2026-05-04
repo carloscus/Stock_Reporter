@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-05-04T02:50:41.166Z",
+    "lastUpdated": "2026-05-04T14:00:24.025Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 217,
@@ -2759,7 +2759,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 50,
-      "stock": 101206,
+      "stock": 115606,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -3656,7 +3656,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 100,
-      "stock": 38518,
+      "stock": 42118,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -9948,7 +9948,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 10,
-      "stock": 40,
+      "stock": 30,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -9961,7 +9961,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 10,
-      "stock": 1701,
+      "stock": 1681,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -10013,7 +10013,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 5,
-      "stock": 586,
+      "stock": 566,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -10156,7 +10156,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 5,
-      "stock": 1349,
+      "stock": 1329,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -10234,7 +10234,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 5,
-      "stock": 202,
+      "stock": 172,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -10273,7 +10273,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 5,
-      "stock": 224,
+      "stock": 214,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -11625,7 +11625,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 80,
-      "stock": 99012,
+      "stock": 99072,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -11794,7 +11794,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 120,
-      "stock": 448,
+      "stock": 412,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -12067,7 +12067,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 240,
-      "stock": 203,
+      "stock": 179,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
