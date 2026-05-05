@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-05-04T23:04:41.595Z",
+    "lastUpdated": "2026-05-05T02:42:30.220Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 219,
@@ -8687,7 +8687,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 24,
-      "stock": 5190,
+      "stock": 5188,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -8700,7 +8700,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 24,
-      "stock": 7819,
+      "stock": 7817,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -9493,7 +9493,7 @@
       "linea": "ARCHIVO",
       "categoria": "ESCOLAR",
       "unBx": 64,
-      "stock": 2411,
+      "stock": 2409,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
