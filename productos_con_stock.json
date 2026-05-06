@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "lastUpdated": "2026-05-06T14:10:34.679Z",
+    "lastUpdated": "2026-05-06T16:27:15.691Z",
     "totalProducts": 1088,
     "almacen": "VES",
-    "sinStock": 216,
+    "sinStock": 215,
     "bajoStock": 303,
     "status": "OPERATIVO"
   },
@@ -237,7 +237,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 36,
-      "stock": 3528,
+      "stock": 3529,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -250,7 +250,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 36,
-      "stock": 3013,
+      "stock": 3014,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -601,10 +601,10 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 48,
-      "stock": 0,
-      "estado": "✗ AGOTADO",
-      "bgColor": "FFFEE2E2",
-      "fontColor": "FFDC2626"
+      "stock": 144,
+      "estado": "⚠ BAJO",
+      "bgColor": "FFFEF3C7",
+      "fontColor": "FFD97706"
     },
     {
       "orden": 47,
@@ -1732,7 +1732,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 120,
-      "stock": 121,
+      "stock": 122,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -1836,7 +1836,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 120,
-      "stock": 2808,
+      "stock": 2809,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -2590,7 +2590,7 @@
       "linea": "FORROS",
       "categoria": "ESCOLAR",
       "unBx": 25,
-      "stock": 150,
+      "stock": 147,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -5463,7 +5463,7 @@
       "linea": "ESCRITURA",
       "categoria": "ESCOLAR",
       "unBx": 192,
-      "stock": 9001,
+      "stock": 8998,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -7426,7 +7426,7 @@
       "linea": "ESCRITURA",
       "categoria": "ESCOLAR",
       "unBx": 576,
-      "stock": 3555,
+      "stock": 3554,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -8232,7 +8232,7 @@
       "linea": "METALICA",
       "categoria": "ESCOLAR",
       "unBx": 48,
-      "stock": 12182,
+      "stock": 12179,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -12028,7 +12028,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 120,
-      "stock": 188,
+      "stock": 180,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -12535,7 +12535,7 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 240,
-      "stock": 468,
+      "stock": 460,
       "estado": "⚠ BAJO",
       "bgColor": "FFFEF3C7",
       "fontColor": "FFD97706"
@@ -12678,10 +12678,10 @@
       "linea": "REPRESENTADAS",
       "categoria": "REPRESENTADAS",
       "unBx": 40,
-      "stock": 5,
-      "estado": "⚠ BAJO",
-      "bgColor": "FFFEF3C7",
-      "fontColor": "FFD97706"
+      "stock": 605,
+      "estado": "✓ OK",
+      "bgColor": "FFD1FAE5",
+      "fontColor": "FF065F46"
     },
     {
       "orden": 976,
