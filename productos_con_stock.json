@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "lastUpdated": "2026-05-06T02:48:37.977Z",
+    "lastUpdated": "2026-05-06T14:10:34.679Z",
     "totalProducts": 1088,
     "almacen": "VES",
     "sinStock": 216,
@@ -1602,7 +1602,7 @@
       "linea": "PELOTAS",
       "categoria": "PELOTAS",
       "unBx": 12,
-      "stock": 1984,
+      "stock": 1972,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
@@ -6958,7 +6958,7 @@
       "linea": "ACCESORIOS",
       "categoria": "ESCOLAR",
       "unBx": 144,
-      "stock": 92609,
+      "stock": 98081,
       "estado": "✓ OK",
       "bgColor": "FFD1FAE5",
       "fontColor": "FF065F46"
